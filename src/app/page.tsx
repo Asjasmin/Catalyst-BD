@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Presentation, Building2, Link as LinkIcon, Calendar, X, Plus } from "lucide-react";
+import { Presentation, Building2, Link as LinkIcon, Calendar, X, Plus, Trash2 } from "lucide-react";
 
 interface Client {
   id: number;
@@ -93,6 +93,18 @@ export default function Home() {
     setIsProjectModalOpen(false);
   };
 
+  // --- NEW: Delete Functions ---
+  const handleDeleteClient = (clientId: number, clientName: string) => {
+    // 1. Remove the client
+    setClients(clients.filter(client => client.id !== clientId));
+    // 2. Automatically remove any projects associated with that client to keep data clean
+    setProjects(projects.filter(project => project.client !== clientName));
+  };
+
+  const handleDeleteProject = (projectId: number) => {
+    setProjects(projects.filter(project => project.id !== projectId));
+  };
+
   return (
     <main className="min-h-screen bg-gray-100 p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -127,16 +139,17 @@ export default function Home() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Industry</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {clients.map((client) => (
-                <tr key={client.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={client.id} className="hover:bg-gray-50 transition-colors group">
                   <td className="px-6 py-4 whitespace-nowrap flex items-center gap-3">
                     <img 
                       src={client.logo} 
                       alt={client.name} 
-                      onError={(e) => { (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=" + client.name; }}
+                      onError={(e) => { (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=" + client.name + "&background=random"; }}
                       className="w-8 h-8 rounded-full border border-gray-200 object-cover" 
                     />
                     <span className="font-medium text-gray-900">{client.name}</span>
@@ -151,8 +164,22 @@ export default function Home() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.industry}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.contact}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <button 
+                      onClick={() => handleDeleteClient(client.id, client.name)}
+                      className="text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      title="Delete Client"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
                 </tr>
               ))}
+              {clients.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500 text-sm">No clients found. Add a new lead to get started.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -176,11 +203,12 @@ export default function Home() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deck</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Presentation</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {projects.map((project) => (
-                <tr key={project.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={project.id} className="hover:bg-gray-50 transition-colors group">
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{project.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.client}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -196,8 +224,22 @@ export default function Home() {
                     <Calendar className="w-4 h-4 text-purple-500" />
                     {project.pitchDate}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <button 
+                      onClick={() => handleDeleteProject(project.id)}
+                      className="text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      title="Delete Project"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
                 </tr>
               ))}
+              {projects.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500 text-sm">No active projects. Add a new pitch.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
