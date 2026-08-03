@@ -1,0 +1,10 @@
+{
+  "name": "Catalyst BD Hub",
+  "short_name": "Catalyst",
+  "description": "Business Development Project Tracker",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": []
+}
