@@ -6,7 +6,7 @@ import { supabase } from "../lib/supabase";
 import { GoogleGenAI } from "@google/genai";
 
 // Initialize Gemini (Ensure NEXT_PUBLIC_GEMINI_API_KEY is set in Vercel)
-const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY || "dummy-key-for-build" });
+const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY || "AQ.Ab8RN6LFeuXe193h-QPYxxr8WvYiDEWbjUCyrisSzkSpeuqqWQ" });
 
 interface Client {
   id: number;
