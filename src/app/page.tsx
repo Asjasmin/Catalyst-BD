@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Presentation, Building2, Link as LinkIcon, Calendar, X, Plus, Trash2, Search, MessageSquare, Linkedin, Phone, Sparkles, Loader2 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "../lib/supabase";
 import { GoogleGenAI } from "@google/genai";
 
 // Initialize Gemini (Ensure NEXT_PUBLIC_GEMINI_API_KEY is set in Vercel)
