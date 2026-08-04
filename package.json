@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
-    "@google/genai": "^0.1.2",
+    "@google/genai": "latest",
     "@supabase/supabase-js": "^2.45.0",
     "lucide-react": "^0.428.0",
     "next": "14.2.5",
