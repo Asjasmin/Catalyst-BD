@@ -30,12 +30,13 @@
             color: #0f172a;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Mobile Scroll Fixes */
+        /* Mobile Scroll & Layout Fixes */
         html, body, #root { height: 100%; width: 100%; overflow: hidden; }
         
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
         .chat-bubble-ai { background: #f1f5f9; border-bottom-left-radius: 2px; }
         .chat-bubble-user { background: #3b82f6; color: white; border-bottom-right-radius: 2px; }
@@ -59,12 +60,13 @@
 
         // ==========================================
         // 🚨 PASTE YOUR SUPABASE KEYS HERE 🚨
-        // Do NOT paste your Gemini API key here anymore!
+        // Do NOT paste your Gemini API key here! 
+        // Use the Settings Gear inside the app for Gemini.
         // ==========================================
-        const SUPABASE_URL = "https://wxfpwgtvwrnnzdnljqtz.supabase.co/rest/v1/";
+        const SUPABASE_URL = "https://wxfpwgtvwrnnzdnljqtz.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4ZnB3Z3R2d3JubnpkbmxqcXR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3NDc2NzEsImV4cCI6MjEwMTMyMzY3MX0.tZxz4QjRwrB3pKpuzSPsLgJhanI4vNYpIbs5DHNf__I";
 
-        const supabase = (SUPABASE_URL !== "https://wxfpwgtvwrnnzdnljqtz.supabase.co/rest/v1/" && SUPABASE_URL.includes('supabase.co')) 
+        const supabase = (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_URL.includes('supabase.co')) 
             ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
             : null;
 
@@ -95,8 +97,8 @@
                         <h3 className="text-lg font-bold text-slate-800 mb-2">{title}</h3>
                         <p className="text-slate-600 mb-6">{message}</p>
                         <div className="flex justify-end space-x-3">
-                            <button onClick={onCancel} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-                            <button onClick={onConfirm} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg">Delete</button>
+                            <button onClick={onCancel} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium">Cancel</button>
+                            <button onClick={onConfirm} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium">Delete</button>
                         </div>
                     </div>
                 </div>
@@ -106,49 +108,60 @@
         const AlertToast = ({ message, type, onClose }) => {
             if (!message) return null;
             return (
-                <div className={`fixed top-4 right-4 left-4 md:left-auto z-[200] p-4 rounded-xl shadow-lg flex items-center justify-between ${type === 'error' ? 'bg-red-600' : 'bg-emerald-600'} text-white`}>
-                    <div className="flex items-center">
-                        <i data-lucide={type === 'error' ? 'alert-triangle' : 'check-circle'} className="w-5 h-5 mr-3"></i>
-                        <p className="font-medium text-sm">{message}</p>
+                <div className={`fixed top-4 right-4 left-4 md:left-auto md:w-80 z-[200] p-4 rounded-xl shadow-lg flex items-start justify-between ${type === 'error' ? 'bg-red-600' : 'bg-emerald-600'} text-white`}>
+                    <div className="flex items-start">
+                        <i data-lucide={type === 'error' ? 'alert-triangle' : 'check-circle'} className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0"></i>
+                        <p className="font-medium text-sm leading-snug">{message}</p>
                     </div>
-                    <button onClick={onClose} className="ml-4 opacity-80 hover:opacity-100"><i data-lucide="x" className="w-4 h-4"></i></button>
+                    <button onClick={onClose} className="ml-4 opacity-80 hover:opacity-100 flex-shrink-0"><i data-lucide="x" className="w-4 h-4"></i></button>
                 </div>
             );
         };
 
         const Dashboard = ({ clients, pitches, openSettings }) => {
             return (
-                <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+                <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h2 className="text-2xl font-bold text-slate-800">Overview</h2>
-                            <p className="text-slate-500 text-sm">Your business development metrics.</p>
+                            <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Overview</h2>
+                            <p className="text-slate-500 mt-1">Your business development metrics.</p>
                         </div>
-                        <button onClick={openSettings} className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
+                        <button onClick={openSettings} className="p-3 bg-white border border-slate-200 text-slate-600 rounded-full hover:bg-slate-50 shadow-sm transition-all" title="Settings">
                             <i data-lucide="settings" className="w-5 h-5"></i>
                         </button>
                     </div>
                     
                     {!supabase && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start">
-                            <i data-lucide="alert-triangle" className="w-5 h-5 mr-3 mt-0.5"></i>
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-4 rounded-xl flex items-start shadow-sm">
+                            <i data-lucide="alert-triangle" className="w-6 h-6 mr-3 mt-0.5 flex-shrink-0"></i>
                             <div>
-                                <h4 className="font-bold">Database Not Connected</h4>
-                                <p className="text-sm">Please check your Supabase Keys in GitHub.</p>
+                                <h4 className="font-bold text-base">Database Not Connected</h4>
+                                <p className="text-sm mt-1">Please ensure your SUPABASE_URL and SUPABASE_ANON_KEY are correctly pasted in the index.html file with quotation marks.</p>
                             </div>
                         </div>
                     )}
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                            <div className="text-blue-600 mb-2"><i data-lucide="users" className="w-6 h-6"></i></div>
-                            <h3 className="text-2xl font-bold">{clients.length}</h3>
-                            <p className="text-xs text-slate-500">Total Leads</p>
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-4"><i data-lucide="users" className="w-5 h-5"></i></div>
+                            <div>
+                                <p className="text-sm font-medium text-slate-500 mb-1">Total Leads</p>
+                                <h3 className="text-3xl font-bold text-slate-800">{clients.length}</h3>
+                            </div>
                         </div>
-                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                            <div className="text-purple-600 mb-2"><i data-lucide="mic" className="w-6 h-6"></i></div>
-                            <h3 className="text-2xl font-bold">{pitches.length}</h3>
-                            <p className="text-xs text-slate-500">Active Pitches</p>
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                            <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mb-4"><i data-lucide="mic" className="w-5 h-5"></i></div>
+                            <div>
+                                <p className="text-sm font-medium text-slate-500 mb-1">Active Pitches</p>
+                                <h3 className="text-3xl font-bold text-slate-800">{pitches.length}</h3>
+                            </div>
+                        </div>
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                            <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4"><i data-lucide="check-circle" className="w-5 h-5"></i></div>
+                            <div>
+                                <p className="text-sm font-medium text-slate-500 mb-1">Secured Clients</p>
+                                <h3 className="text-3xl font-bold text-slate-800">{clients.filter(c => c.status === "Past").length}</h3>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -162,6 +175,8 @@
             const [editingId, setEditingId] = useState(null);
             const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: null });
             const [isAutoFilling, setIsAutoFilling] = useState(false);
+            
+            // Full complex state matching Supabase DB
             const [formData, setFormData] = useState({ name: '', contact: '', status: 'Potential', sector: 'Tech', website: '', ig: '', li: '', yt: '', tiktok: '' });
 
             const [chatHistory, setChatHistory] = useState([]);
@@ -181,7 +196,7 @@
 
             const handleAutoFill = async () => {
                 const apiKey = getGeminiKey();
-                if (!apiKey) { alert("Please click the Settings gear to add your Gemini API Key first!"); return openSettings(); }
+                if (!apiKey) { alert("Please click Settings (Gear Icon) to add your Gemini API Key first!"); return openSettings(); }
                 if (!formData.name) return alert("Please type a Company Name first!");
 
                 setIsAutoFilling(true);
@@ -189,7 +204,7 @@
                     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, { 
                         method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                         body: JSON.stringify({
-                            contents: [{ parts: [{ text: `Find official online presence for "${formData.name}" in Indonesia. Return ONLY JSON keys: website, ig, li, yt, tiktok.` }] }],
+                            contents: [{ parts: [{ text: `Find official online presence for "${formData.name}" in Indonesia. Return ONLY JSON keys: website, ig, li, yt, tiktok. If not found, leave empty string.` }] }],
                             tools: [{ "google_search": {} }],
                             generationConfig: { responseMimeType: "application/json" }
                         }) 
@@ -197,7 +212,7 @@
                     const data = await res.json();
                     if(data.error) throw new Error(data.error.message);
                     setFormData(prev => ({ ...prev, ...JSON.parse(data.candidates[0].content.parts[0].text) }));
-                } catch (err) { alert("AI Error: " + err.message); }
+                } catch (err) { alert("AI Auto-fill Error: " + err.message); }
                 setIsAutoFilling(false);
             };
 
@@ -206,7 +221,7 @@
                 if(!chatInput.trim()) return;
                 
                 const apiKey = getGeminiKey();
-                if (!apiKey) { alert("Please click Settings to add your Gemini API Key!"); return openSettings(); }
+                if (!apiKey) { alert("Please click Settings (Gear Icon) to add your Gemini API Key!"); return openSettings(); }
 
                 const userMsg = { role: 'user', text: chatInput };
                 setChatHistory(prev => [...prev, userMsg]);
@@ -221,7 +236,7 @@
                         method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                         body: JSON.stringify({
                             contents: contents, tools: [{ "google_search": {} }],
-                            systemInstruction: { parts: [{ text: "You are an elite Business Development Strategist. ALWAYS use this structure:\n1. **Client Brief Input**: Summarize client.\n2. **Event Strategy Recommendation**: Creative ideas based on market trends.\n3. **Pitch Deck Structure Recommendation**: Slide-by-slide outline." }] }
+                            systemInstruction: { parts: [{ text: "You are an elite Business Development Strategist. ALWAYS structure responses in exactly 3 sections: \n1. **Client Brief Input**: Briefly summarize client/opportunity.\n2. **Event Strategy Recommendation**: Highly creative, data-backed activation ideas.\n3. **Pitch Deck Structure Recommendation**: Slide-by-slide outline." }] }
                         }) 
                     });
                     const data = await res.json();
@@ -235,43 +250,62 @@
 
             return (
                 <div className="h-full flex flex-col bg-white">
-                    <ConfirmModal isOpen={deleteConfirm.isOpen} title="Delete Client" message="Are you sure?" onConfirm={() => { deleteClient(deleteConfirm.id); setDeleteConfirm({isOpen: false, id: null}); }} onCancel={() => setDeleteConfirm({isOpen: false, id: null})} />
+                    <ConfirmModal isOpen={deleteConfirm.isOpen} title="Delete Lead" message="Are you sure you want to permanently delete this client?" onConfirm={() => { deleteClient(deleteConfirm.id); setDeleteConfirm({isOpen: false, id: null}); }} onCancel={() => setDeleteConfirm({isOpen: false, id: null})} />
 
-                    <div className="p-4 border-b bg-slate-50 flex flex-col md:flex-row md:justify-between space-y-3 md:space-y-0 shrink-0">
+                    <div className="px-6 py-4 border-b bg-slate-50 flex flex-col md:flex-row md:justify-between items-start md:items-center space-y-4 md:space-y-0 shrink-0">
                         <div>
-                            <h2 className="text-xl font-bold flex items-center"><i data-lucide="target" className="w-5 h-5 mr-2 text-blue-600"></i> The Hunter</h2>
+                            <h2 className="text-2xl font-bold flex items-center text-slate-800"><i data-lucide="target" className="w-6 h-6 mr-2 text-blue-600"></i> The Hunter</h2>
+                            <p className="text-sm text-slate-500 mt-1">Client Pipeline & Strategy</p>
                         </div>
-                        <div className="flex space-x-1 bg-slate-200 p-1 rounded-lg">
-                            <button onClick={() => setView('crm')} className={`px-3 py-1.5 rounded-md text-sm ${view === 'crm' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`}>CRM Tracker</button>
-                            <button onClick={() => setView('strategy')} className={`px-3 py-1.5 rounded-md text-sm flex items-center ${view === 'strategy' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`}><i data-lucide="sparkles" className="w-4 h-4 mr-1 text-purple-500"></i> AI Strategist</button>
+                        <div className="flex space-x-1 bg-slate-200/60 p-1 rounded-xl w-full md:w-auto">
+                            <button onClick={() => setView('crm')} className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'crm' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-600 hover:text-slate-800'}`}>CRM Database</button>
+                            <button onClick={() => setView('strategy')} className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center transition-all ${view === 'strategy' ? 'bg-white shadow-sm text-purple-600' : 'text-slate-600 hover:text-slate-800'}`}><i data-lucide="sparkles" className="w-4 h-4 mr-1.5"></i> AI Strategist</button>
                         </div>
                     </div>
 
+                    {/* CRM View */}
                     {view === 'crm' && (
-                        <div className="flex-1 overflow-y-auto p-4 bg-slate-50">
-                            <div className="flex flex-col md:flex-row justify-between mb-4 space-y-2 md:space-y-0">
-                                <div className="relative w-full md:w-64">
-                                    <i data-lucide="search" className="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
-                                    <input type="text" placeholder="Search clients..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 rounded-lg border text-sm" />
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50/50">
+                            <div className="flex flex-col md:flex-row justify-between mb-6 space-y-3 md:space-y-0">
+                                <div className="relative w-full md:w-72">
+                                    <i data-lucide="search" className="absolute left-3 top-3 w-4 h-4 text-slate-400"></i>
+                                    <input type="text" placeholder="Search clients or sectors..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 shadow-sm text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
                                 </div>
-                                <button onClick={() => { setEditingId(null); setFormData({ name: '', contact: '', status: 'Potential', sector: 'Tech', website: '', ig: '', li: '', yt: '', tiktok: '' }); setShowModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center justify-center">
-                                    <i data-lucide="plus" className="w-4 h-4 mr-1"></i> Add Target
+                                <button onClick={() => { setEditingId(null); setFormData({ name: '', contact: '', status: 'Potential', sector: 'Tech', website: '', ig: '', li: '', yt: '', tiktok: '' }); setShowModal(true); }} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center shadow-sm transition-colors">
+                                    <i data-lucide="plus" className="w-4 h-4 mr-1.5"></i> Add Target Lead
                                 </button>
                             </div>
                             
-                            <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
-                                <table className="w-full text-left min-w-[700px]">
-                                    <thead className="bg-slate-100 text-slate-500 text-xs">
-                                        <tr><th className="p-4">Company</th><th className="p-4">Status & Sector</th><th className="p-4">Actions</th></tr>
+                            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto">
+                                <table className="w-full text-left min-w-[800px]">
+                                    <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs uppercase tracking-wider">
+                                        <tr><th className="p-4 font-medium">Company Details</th><th className="p-4 font-medium">Classification</th><th className="p-4 font-medium">Digital Footprint</th><th className="p-4 font-medium text-right">Actions</th></tr>
                                     </thead>
-                                    <tbody className="divide-y text-sm">
+                                    <tbody className="divide-y divide-slate-100 text-sm">
+                                        {filteredClients.length === 0 ? <tr><td colSpan="4" className="p-8 text-center text-slate-500">No clients found. Click 'Add Target Lead' to start building your pipeline.</td></tr> : null}
                                         {filteredClients.map(c => (
-                                            <tr key={c.id}>
-                                                <td className="p-4 font-semibold">{c.name}</td>
-                                                <td className="p-4"><span className="block text-xs text-slate-500">{c.sector}</span><span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded font-bold">{c.status}</span></td>
-                                                <td className="p-4 space-x-2">
-                                                    <button onClick={() => { setEditingId(c.id); setFormData(c); setShowModal(true); }} className="p-1.5 bg-slate-100 rounded"><i data-lucide="edit" className="w-4 h-4"></i></button>
-                                                    <button onClick={() => setDeleteConfirm({isOpen: true, id: c.id})} className="p-1.5 bg-red-50 text-red-600 rounded"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
+                                            <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="p-4">
+                                                    <p className="font-bold text-slate-800 text-base">{c.name}</p>
+                                                    <p className="text-slate-500 text-xs mt-0.5">{c.contact || 'No contact added'}</p>
+                                                    {c.website && <a href={c.website.startsWith('http') ? c.website : `https://${c.website}`} target="_blank" className="text-xs text-blue-500 hover:underline mt-1 block truncate max-w-[200px]">{c.website}</a>}
+                                                </td>
+                                                <td className="p-4">
+                                                    <span className="block font-medium text-slate-700 mb-1">{c.sector}</span>
+                                                    <span className={`inline-block text-xs px-2.5 py-1 rounded-md font-semibold border ${c.status === 'Potential' ? 'bg-slate-100 border-slate-200 text-slate-600' : c.status === 'Approaching' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>{c.status}</span>
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex space-x-2.5 text-slate-400">
+                                                        {c.li && <a href={c.li} target="_blank" title="LinkedIn"><i data-lucide="linkedin" className="w-5 h-5 hover:text-blue-600 text-blue-500 transition-colors"></i></a>}
+                                                        {c.ig && <a href={c.ig} target="_blank" title="Instagram"><i data-lucide="instagram" className="w-5 h-5 hover:text-pink-600 text-pink-500 transition-colors"></i></a>}
+                                                        {c.yt && <a href={c.yt} target="_blank" title="YouTube"><i data-lucide="youtube" className="w-5 h-5 hover:text-red-600 text-red-500 transition-colors"></i></a>}
+                                                        {c.tiktok && <a href={c.tiktok} target="_blank" title="TikTok" className="hover:text-black text-slate-700 transition-colors"><svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.12-3.44-3.17-3.8-5.46-.4-2.52.49-5.14 2.37-6.83 1.14-1.02 2.6-1.62 4.14-1.74.02 1.34-.01 2.68.01 4.02-1.01.07-2.01.48-2.73 1.19-.88.85-1.28 2.14-1.03 3.36.21 1.05.9 1.98 1.83 2.44 1.05.51 2.3.52 3.35.03 1.1-.5 1.87-1.55 2.05-2.73.12-.76.11-1.53.11-2.3V.02h-1.33z"/></svg></a>}
+                                                        {!c.li && !c.ig && !c.yt && !c.tiktok && <span className="text-xs text-slate-300 italic">No links</span>}
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 text-right space-x-2">
+                                                    <button onClick={() => { setEditingId(c.id); setFormData(c); setShowModal(true); }} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors" title="Edit"><i data-lucide="edit-2" className="w-4 h-4"></i></button>
+                                                    <button onClick={() => setDeleteConfirm({isOpen: true, id: c.id})} className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors" title="Delete"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -281,40 +315,97 @@
                         </div>
                     )}
 
+                    {/* AI Strategist View */}
                     {view === 'strategy' && (
-                        <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden">
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                                {chatHistory.length === 0 && <div className="text-center mt-10 text-slate-500">Ask AI Strategist to research a brand!</div>}
+                        <div className="flex-1 flex flex-col bg-slate-50/50 overflow-hidden">
+                            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+                                {chatHistory.length === 0 && (
+                                    <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto">
+                                        <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4"><i data-lucide="sparkles" className="w-8 h-8 text-purple-600"></i></div>
+                                        <h3 className="text-xl font-bold text-slate-800 mb-2">Catalyst AI Strategist</h3>
+                                        <p className="text-slate-500 text-sm mb-6">Ask me to research a brand, analyze trends, or build an approach strategy. I will automatically format the output into Briefs, Strategies, and Pitch Deck outlines.</p>
+                                        <div className="flex flex-wrap justify-center gap-2">
+                                            <button onClick={() => setChatInput("Research Gojek Indonesia and give me an activation strategy.")} className="text-xs bg-white border border-slate-200 hover:border-purple-300 text-slate-600 px-4 py-2 rounded-full transition-colors shadow-sm">Research Gojek</button>
+                                            <button onClick={() => setChatInput("What are the current marketing trends for EV (Electric Vehicles) in Jakarta?")} className="text-xs bg-white border border-slate-200 hover:border-purple-300 text-slate-600 px-4 py-2 rounded-full transition-colors shadow-sm">EV Trends in Jakarta</button>
+                                        </div>
+                                    </div>
+                                )}
                                 {chatHistory.map((msg, i) => (
                                     <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[90%] p-4 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white border'}`} dangerouslySetInnerHTML={{__html: msg.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>')}}></div>
+                                        <div className={`max-w-[90%] md:max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed ${msg.role === 'user' ? 'bg-blue-600 text-white shadow-md' : 'bg-white border border-slate-200 shadow-sm'}`} dangerouslySetInnerHTML={{__html: msg.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>')}}></div>
                                     </div>
                                 ))}
-                                {isBotTyping && <div className="p-4 bg-white border w-16 text-slate-400">...</div>}
+                                {isBotTyping && <div className="flex justify-start"><div className="bg-white border border-slate-200 shadow-sm p-4 rounded-2xl flex space-x-2"><div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce"></div><div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{animationDelay:'0.2s'}}></div><div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{animationDelay:'0.4s'}}></div></div></div>}
                                 <div ref={chatEndRef}></div>
                             </div>
-                            <form onSubmit={handleSendChat} className="p-3 bg-white border-t flex relative">
-                                <input type="text" value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder="Ask Strategy AI..." className="w-full pl-4 pr-12 py-3 rounded-xl border text-sm" />
-                                <button type="submit" disabled={isBotTyping} className="absolute right-4 top-4 bg-blue-600 text-white rounded-lg p-1.5"><i data-lucide="send" className="w-4 h-4"></i></button>
+                            <form onSubmit={handleSendChat} className="p-4 bg-white border-t border-slate-200">
+                                <div className="relative max-w-4xl mx-auto">
+                                    <input type="text" value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder="Ask Catalyst AI for strategy..." className="w-full pl-4 pr-14 py-3.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm" disabled={isBotTyping} />
+                                    <button type="submit" disabled={isBotTyping || !chatInput.trim()} className="absolute right-2 top-2 bottom-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg px-3 transition-colors flex items-center justify-center"><i data-lucide="send" className="w-4 h-4"></i></button>
+                                </div>
                             </form>
                         </div>
                     )}
 
+                    {/* Add/Edit Modal */}
                     {showModal && (
-                        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
-                                <div className="p-4 border-b flex justify-between"><h3 className="font-bold">{editingId ? 'Edit' : 'Add'} Client</h3><button onClick={() => setShowModal(false)}><i data-lucide="x" className="w-5 h-5"></i></button></div>
-                                <form onSubmit={handleSubmit} className="p-4 overflow-y-auto space-y-3">
-                                    <label className="block text-xs font-semibold">Company Name *</label>
-                                    <input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                                    <button type="button" onClick={handleAutoFill} className="w-full bg-indigo-50 text-indigo-700 py-2 rounded-lg text-sm flex justify-center"><i data-lucide="sparkles" className="w-4 h-4 mr-2"></i> Auto-fill Socials</button>
-                                    
-                                    <label className="block text-xs font-semibold">Sector & Status</label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <select value={formData.sector} onChange={e=>setFormData({...formData, sector: e.target.value})} className="border rounded-lg px-3 py-2 text-sm">{SECTORS.map(s => <option key={s} value={s}>{s}</option>)}</select>
-                                        <select value={formData.status} onChange={e=>setFormData({...formData, status: e.target.value})} className="border rounded-lg px-3 py-2 text-sm">{STATUSES.map(s => <option key={s} value={s}>{s}</option>)}</select>
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh]">
+                                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                                    <h3 className="font-bold text-lg text-slate-800">{editingId ? 'Edit Target Lead' : 'Add New Target Lead'}</h3>
+                                    <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-lg transition-colors"><i data-lucide="x" className="w-5 h-5"></i></button>
+                                </div>
+                                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div className="md:col-span-1">
+                                            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Company Name *</label>
+                                            <input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-all" placeholder="e.g. Gojek Indonesia" />
+                                        </div>
+                                        <div className="md:col-span-1 flex items-end">
+                                            <button type="button" onClick={handleAutoFill} disabled={isAutoFilling} className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-medium py-2.5 px-4 rounded-xl flex items-center justify-center transition-colors text-sm">
+                                                {isAutoFilling ? <div className="spinner mr-2 border-indigo-600"></div> : <i data-lucide="sparkles" className="w-4 h-4 mr-2"></i>}
+                                                {isAutoFilling ? 'AI Searching...' : 'Spark AI Auto-fill URLs'}
+                                            </button>
+                                        </div>
                                     </div>
-                                    <button type="submit" className="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg text-sm">Save Client</button>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Contact Person</label>
+                                            <input type="text" placeholder="Name & Role (e.g. Budi - CMO)" value={formData.contact} onChange={e=>setFormData({...formData, contact: e.target.value})} className="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Website URL</label>
+                                            <input type="text" placeholder="https://" value={formData.website} onChange={e=>setFormData({...formData, website: e.target.value})} className="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Sector</label>
+                                            <select value={formData.sector} onChange={e=>setFormData({...formData, sector: e.target.value})} className="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white">
+                                                {SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Status</label>
+                                            <select value={formData.status} onChange={e=>setFormData({...formData, status: e.target.value})} className="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white">
+                                                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-t border-slate-200 pt-5 mt-2">
+                                        <h4 className="text-sm font-bold text-slate-700 mb-4">Digital Footprint (URLs)</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="flex items-center"><div className="w-8 flex justify-center"><i data-lucide="linkedin" className="w-5 h-5 text-slate-400"></i></div> <input type="text" placeholder="LinkedIn URL" value={formData.li} onChange={e=>setFormData({...formData, li: e.target.value})} className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+                                            <div className="flex items-center"><div className="w-8 flex justify-center"><i data-lucide="instagram" className="w-5 h-5 text-slate-400"></i></div> <input type="text" placeholder="Instagram URL" value={formData.ig} onChange={e=>setFormData({...formData, ig: e.target.value})} className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+                                            <div className="flex items-center"><div className="w-8 flex justify-center"><i data-lucide="youtube" className="w-5 h-5 text-slate-400"></i></div> <input type="text" placeholder="YouTube URL" value={formData.yt} onChange={e=>setFormData({...formData, yt: e.target.value})} className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+                                            <div className="flex items-center"><div className="w-8 flex justify-center"><svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-slate-400"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.12-3.44-3.17-3.8-5.46-.4-2.52.49-5.14 2.37-6.83 1.14-1.02 2.6-1.62 4.14-1.74.02 1.34-.01 2.68.01 4.02-1.01.07-2.01.48-2.73 1.19-.88.85-1.28 2.14-1.03 3.36.21 1.05.9 1.98 1.83 2.44 1.05.51 2.3.52 3.35.03 1.1-.5 1.87-1.55 2.05-2.73.12-.76.11-1.53.11-2.3V.02h-1.33z"/></svg></div> <input type="text" placeholder="TikTok URL" value={formData.tiktok} onChange={e=>setFormData({...formData, tiktok: e.target.value})} className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="pt-4 flex justify-end space-x-3">
+                                        <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-xl transition-colors text-sm">Cancel</button>
+                                        <button type="submit" className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-colors text-sm">Save Client</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -325,39 +416,109 @@
 
         const Pitcher = ({ pitches, clients, savePitch, deletePitch }) => {
             const [showModal, setShowModal] = useState(false);
-            const [formData, setFormData] = useState({ client_id: '', name: '', deck_link: '' });
+            const [searchQuery, setSearchQuery] = useState('');
+            const [formData, setFormData] = useState({ client_id: '', name: '', deck_link: '', sub_date: '', pitch_date: '', event_date: '' });
             const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: null });
 
+            const filteredPitches = pitches.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || clients.find(c => c.id === p.client_id)?.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+            const generateGCalLink = (pitch) => {
+                const client = clients.find(c => c.id === pitch.client_id);
+                const title = encodeURIComponent(`Pitch: ${pitch.name} - ${client ? client.name : 'Client'}`);
+                const formatForGCal = (dateStr) => { if(!dateStr) return ""; const d = new Date(dateStr); return d.toISOString().replace(/-|:|\.\d\d\d/g,""); };
+                let datesStr = "";
+                if(pitch.pitch_date) { const start = formatForGCal(pitch.pitch_date); const end = formatForGCal(new Date(new Date(pitch.pitch_date).getTime() + 60*60*1000)); datesStr = `&dates=${start}/${end}`; }
+                const details = encodeURIComponent(`Client: ${client ? client.name : 'N/A'}\nDeck: ${pitch.deck_link || 'N/A'}\nSub Deadline: ${pitch.sub_date || 'N/A'}\nEvent Date: ${pitch.event_date || 'N/A'}`);
+                return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}${datesStr}&details=${details}`;
+            };
+
             return (
-                <div className="h-full flex flex-col bg-slate-50">
-                    <ConfirmModal isOpen={deleteConfirm.isOpen} title="Delete Pitch" message="Are you sure?" onConfirm={() => { deletePitch(deleteConfirm.id); setDeleteConfirm({isOpen: false, id: null}); }} onCancel={() => setDeleteConfirm({isOpen: false, id: null})} />
-                    <div className="p-4 flex justify-between items-center bg-white border-b shrink-0">
-                        <h2 className="text-xl font-bold flex items-center"><i data-lucide="presentation" className="w-5 h-5 mr-2 text-purple-600"></i> The Pitcher</h2>
-                        <button onClick={() => { setFormData({ client_id: clients[0]?.id || '', name: '', deck_link: '' }); setShowModal(true); }} className="bg-purple-600 text-white px-3 py-2 rounded-lg text-sm"><i data-lucide="plus" className="w-4 h-4 inline"></i> New</button>
+                <div className="h-full flex flex-col bg-slate-50/50">
+                    <ConfirmModal isOpen={deleteConfirm.isOpen} title="Delete Pitch" message="Are you sure you want to permanently delete this pitch project?" onConfirm={() => { deletePitch(deleteConfirm.id); setDeleteConfirm({isOpen: false, id: null}); }} onCancel={() => setDeleteConfirm({isOpen: false, id: null})} />
+                    
+                    <div className="px-6 py-4 flex flex-col md:flex-row md:justify-between items-start md:items-center bg-white border-b border-slate-200 shrink-0 space-y-4 md:space-y-0">
+                        <div>
+                            <h2 className="text-2xl font-bold flex items-center text-slate-800"><i data-lucide="presentation" className="w-6 h-6 mr-2 text-purple-600"></i> The Pitcher</h2>
+                            <p className="text-sm text-slate-500 mt-1">Briefing Meetings & Creative Decks</p>
+                        </div>
+                        <div className="flex space-x-3 w-full md:w-auto">
+                            <div className="relative flex-1 md:w-64">
+                                <i data-lucide="search" className="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+                                <input type="text" placeholder="Search pitches..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
+                            </div>
+                            <button onClick={() => { setFormData({ client_id: clients[0]?.id || '', name: '', deck_link: '', sub_date: '', pitch_date: '', event_date: '' }); setShowModal(true); }} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center justify-center shadow-sm transition-colors whitespace-nowrap"><i data-lucide="plus" className="w-4 h-4 mr-1.5"></i> New Pitch</button>
+                        </div>
                     </div>
                     
-                    <div className="p-4 flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {pitches.map(p => (
-                            <div key={p.id} className="bg-white rounded-xl shadow-sm border p-4">
-                                <div className="flex justify-between">
-                                    <h3 className="font-bold">{p.name}</h3>
-                                    <button onClick={() => setDeleteConfirm({isOpen: true, id: p.id})} className="text-red-500"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
-                                </div>
-                                <p className="text-sm text-purple-600 mb-4">{clients.find(c => c.id === p.client_id)?.name}</p>
-                                {p.deck_link && <a href={p.deck_link} target="_blank" className="block text-center bg-slate-100 py-2 rounded text-sm"><i data-lucide="link" className="w-4 h-4 inline"></i> View Deck</a>}
-                            </div>
-                        ))}
+                    <div className="p-4 md:p-6 flex-1 overflow-y-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {filteredPitches.length === 0 && <div className="col-span-full py-12 text-center text-slate-500">No pitch projects found. Create one to start tracking deadlines!</div>}
+                            {filteredPitches.map(p => {
+                                const client = clients.find(c => c.id === p.client_id);
+                                return (
+                                    <div key={p.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col hover:border-purple-200 transition-colors">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 className="font-bold text-lg text-slate-800 leading-tight">{p.name}</h3>
+                                                <p className="text-sm text-purple-600 font-semibold mt-1">{client ? client.name : 'Unknown Client'}</p>
+                                            </div>
+                                            <button onClick={() => setDeleteConfirm({isOpen: true, id: p.id})} className="text-slate-300 hover:text-red-500 transition-colors p-1"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
+                                        </div>
+                                        
+                                        <div className="space-y-3 mb-6 flex-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                            <div className="flex items-center text-sm text-slate-600">
+                                                <i data-lucide="alert-circle" className="w-4 h-4 mr-2 text-amber-500"></i>
+                                                <span className="w-24 font-medium">Submission:</span> <span className="font-semibold">{p.sub_date || '-'}</span>
+                                            </div>
+                                            <div className="flex items-center text-sm text-slate-600">
+                                                <i data-lucide="calendar" className="w-4 h-4 mr-2 text-blue-500"></i>
+                                                <span className="w-24 font-medium">Pitch Date:</span> <span className="font-semibold">{p.pitch_date ? new Date(p.pitch_date).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '-'}</span>
+                                            </div>
+                                            <div className="flex items-center text-sm text-slate-600">
+                                                <i data-lucide="flag" className="w-4 h-4 mr-2 text-emerald-500"></i>
+                                                <span className="w-24 font-medium">Event Date:</span> <span className="font-semibold">{p.event_date || '-'}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-2 flex space-x-2">
+                                            <a href={p.deck_link || '#'} target={p.deck_link ? "_blank" : "_self"} onClick={(e) => !p.deck_link && e.preventDefault()} className={`flex-1 text-center py-2 rounded-xl text-sm font-bold transition-colors flex justify-center items-center ${p.deck_link ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-slate-50 text-slate-300 cursor-not-allowed'}`}><i data-lucide="link" className="w-4 h-4 mr-1.5"></i> View Deck</a>
+                                            <a href={generateGCalLink(p)} target="_blank" className="flex-1 bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 text-slate-700 text-center py-2 rounded-xl text-sm font-bold transition-colors flex justify-center items-center shadow-sm"><i data-lucide="calendar-plus" className="w-4 h-4 mr-1.5"></i> To GCal</a>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
                     </div>
 
                     {showModal && (
-                        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl w-full max-w-sm p-4">
-                                <h3 className="font-bold mb-4">New Pitch</h3>
-                                <form onSubmit={(e) => { e.preventDefault(); savePitch(formData, null); setShowModal(false); }} className="space-y-3">
-                                    <select required value={formData.client_id} onChange={e=>setFormData({...formData, client_id: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm"><option value="">Select Client...</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
-                                    <input required type="text" placeholder="Pitch Name" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                                    <input type="url" placeholder="Deck Link" value={formData.deck_link} onChange={e=>setFormData({...formData, deck_link: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                                    <button type="submit" className="w-full bg-purple-600 text-white py-2 rounded-lg">Save</button>
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+                                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                                    <h3 className="font-bold text-lg text-slate-800">New Pitch Project</h3>
+                                    <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 bg-slate-100 p-1.5 rounded-lg"><i data-lucide="x" className="w-5 h-5"></i></button>
+                                </div>
+                                <form onSubmit={(e) => { e.preventDefault(); savePitch(formData); setShowModal(false); }} className="p-6 space-y-5">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Related Client *</label>
+                                        <select required value={formData.client_id} onChange={e=>setFormData({...formData, client_id: e.target.value})} className="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-white"><option value="">Select a client...</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Project Name *</label>
+                                        <input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-purple-500 outline-none text-sm" placeholder="e.g. Q3 Launch Event" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Creative Deck Link</label>
+                                        <input type="url" value={formData.deck_link} onChange={e=>setFormData({...formData, deck_link: e.target.value})} className="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-purple-500 outline-none text-sm" placeholder="https://" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                        <div><label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Submission Date</label><input type="date" value={formData.sub_date} onChange={e=>setFormData({...formData, sub_date: e.target.value})} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none" /></div>
+                                        <div><label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Event Date</label><input type="date" value={formData.event_date} onChange={e=>setFormData({...formData, event_date: e.target.value})} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none" /></div>
+                                        <div className="col-span-2"><label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Pitch Date & Time</label><input type="datetime-local" value={formData.pitch_date} onChange={e=>setFormData({...formData, pitch_date: e.target.value})} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none" /></div>
+                                    </div>
+                                    <div className="pt-2 flex justify-end space-x-3">
+                                        <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-xl transition-colors text-sm">Cancel</button>
+                                        <button type="submit" className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md transition-colors text-sm">Create Pitch</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -365,6 +526,15 @@
                 </div>
             );
         };
+
+        const ComingSoon = ({ title, desc, icon, color }) => (
+            <div className="h-full flex flex-col items-center justify-center bg-slate-50/50 p-8 text-center">
+                <div className={`w-24 h-24 rounded-3xl ${color} bg-opacity-10 flex items-center justify-center mb-6`}><i data-lucide={icon} className={`w-12 h-12 ${color.replace('text-', 'text-')}`}></i></div>
+                <h2 className="text-3xl font-bold text-slate-800 mb-3 tracking-tight">{title}</h2>
+                <p className="text-slate-500 max-w-md mx-auto leading-relaxed">{desc}</p>
+                <div className="mt-8 px-5 py-2 bg-slate-200/80 text-slate-600 rounded-full text-xs font-bold uppercase tracking-widest">In Development</div>
+            </div>
+        );
 
         const App = () => {
             const [activeTab, setActiveTab] = useState('dashboard');
@@ -379,46 +549,69 @@
 
             const fetchClients = async () => {
                 if(!supabase) return;
-                const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
-                if(data) setClients(data);
-                if(error) setErrorMsg("Database Error: " + error.message);
+                try {
+                    const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
+                    if(error) throw error;
+                    if(data) setClients(data);
+                } catch(err) { setErrorMsg("Failed to load clients: " + err.message); }
             };
 
             const fetchPitches = async () => {
                 if(!supabase) return;
-                const { data, error } = await supabase.from('pitches').select('*').order('created_at', { ascending: false });
-                if(data) setPitches(data);
-                if(error) setErrorMsg("Database Error: " + error.message);
+                try {
+                    const { data, error } = await supabase.from('pitches').select('*').order('created_at', { ascending: false });
+                    if(error) throw error;
+                    if(data) setPitches(data);
+                } catch(err) { setErrorMsg("Failed to load pitches: " + err.message); }
             };
 
             useEffect(() => { fetchClients(); fetchPitches(); }, []);
             useEffect(() => { lucide.createIcons(); });
 
             const saveClient = async (data, id) => {
-                if(!supabase) return setErrorMsg("Database not connected!");
+                if(!supabase) return setErrorMsg("Supabase not connected. Check API keys.");
                 try {
-                    let res = id ? await supabase.from('clients').update(data).eq('id', id) : await supabase.from('clients').insert([data]);
+                    // Filter out empty strings to match DB schema safely
+                    const payload = { ...data };
+                    Object.keys(payload).forEach(key => { if(payload[key] === '') payload[key] = null; });
+
+                    let res = id ? await supabase.from('clients').update(payload).eq('id', id) : await supabase.from('clients').insert([payload]);
                     if (res.error) throw res.error;
-                    setSuccessMsg("Saved!"); fetchClients();
-                } catch (err) { setErrorMsg(err.message); }
+                    setSuccessMsg(id ? "Client Updated!" : "New Lead Added!"); 
+                    fetchClients();
+                } catch (err) { setErrorMsg("Save Failed: " + err.message); }
             };
 
             const deleteClient = async (id) => {
-                try {
-                    let res = await supabase.from('clients').delete().eq('id', id);
-                    if(res.error) throw res.error; fetchClients();
-                } catch (err) { setErrorMsg(err.message); }
+                try { let res = await supabase.from('clients').delete().eq('id', id); if(res.error) throw res.error; fetchClients(); setSuccessMsg("Lead Deleted"); } catch (err) { setErrorMsg(err.message); }
             };
             
             const savePitch = async (data) => {
+                if(!supabase) return setErrorMsg("Supabase not connected.");
                 try {
-                    let res = await supabase.from('pitches').insert([data]);
-                    if (res.error) throw res.error; fetchPitches();
-                } catch (err) { setErrorMsg(err.message); }
+                    const payload = { ...data };
+                    Object.keys(payload).forEach(key => { if(payload[key] === '') payload[key] = null; });
+
+                    let res = await supabase.from('pitches').insert([payload]);
+                    if (res.error) throw res.error; 
+                    setSuccessMsg("Pitch Project Created!");
+                    fetchPitches();
+                } catch (err) { setErrorMsg("Save Failed: " + err.message); }
             };
 
             const deletePitch = async (id) => {
-                try { await supabase.from('pitches').delete().eq('id', id); fetchPitches(); } catch (err) { setErrorMsg(err.message); }
+                try { await supabase.from('pitches').delete().eq('id', id); fetchPitches(); setSuccessMsg("Pitch Deleted"); } catch (err) { setErrorMsg(err.message); }
+            };
+
+            const renderContent = () => {
+                switch(activeTab) {
+                    case 'dashboard': return <Dashboard clients={clients} pitches={pitches} openSettings={() => setShowSettings(true)} />;
+                    case 'hunter': return <Hunter clients={clients} saveClient={saveClient} deleteClient={deleteClient} getGeminiKey={getGeminiKey} openSettings={() => setShowSettings(true)} />;
+                    case 'pitcher': return <Pitcher pitches={pitches} clients={clients} savePitch={savePitch} deletePitch={deletePitch} />;
+                    case 'manager': return <ComingSoon title="3. The Project Manager" desc="Ideation, concepting, flow proposals, and asset requests (2D/3D). This workspace will manage the heavy lifting before the pitch." icon="kanban" color="text-amber-500" />;
+                    case 'farmer': return <ComingSoon title="4. The Farmer" desc="Client retention dashboard. Track long-term relationships, account health, and contract renewals to ensure sustainable business." icon="sprout" color="text-emerald-500" />;
+                    default: return <Dashboard clients={clients} pitches={pitches} />;
+                }
             };
 
             return (
@@ -426,41 +619,38 @@
                     <AlertToast message={errorMsg} type="error" onClose={() => setErrorMsg(null)} />
                     <AlertToast message={successMsg} type="success" onClose={() => setSuccessMsg(null)} />
 
-                    {/* Desktop Nav */}
-                    <div className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col h-full shrink-0">
-                        <div className="p-6 flex items-center mb-4"><CatalystLogo /><h1 className="ml-3 font-bold text-white">CatalystBD</h1></div>
+                    {/* Desktop Sidebar (Hidden on Mobile) */}
+                    <div className="hidden md:flex w-72 bg-slate-900 text-slate-300 flex-col h-full shrink-0 shadow-2xl z-20">
+                        <div className="p-6 flex items-center border-b border-slate-800 mb-4"><CatalystLogo /><h1 className="ml-3 text-xl font-bold text-white tracking-tight">Catalyst<span className="text-blue-500">BD</span></h1></div>
                         <nav className="flex-1 px-4 space-y-2">
-                            {NAV_ITEMS.map(i => <button key={i.id} onClick={() => setActiveTab(i.id)} className={`w-full flex p-3 rounded-lg ${activeTab === i.id ? 'bg-blue-600 text-white' : 'hover:bg-slate-800'}`}><i data-lucide={i.icon} className="w-5 h-5 mr-3"></i>{i.label}</button>)}
+                            {NAV_ITEMS.map(i => <button key={i.id} onClick={() => setActiveTab(i.id)} className={`w-full flex items-center p-3 rounded-xl font-medium transition-all duration-200 ${activeTab === i.id ? 'bg-blue-600 text-white shadow-md shadow-blue-900/50' : 'hover:bg-slate-800 hover:text-white'}`}><i data-lucide={i.icon} className="w-5 h-5 mr-3"></i>{i.label}</button>)}
                         </nav>
-                        <button onClick={() => setShowSettings(true)} className="m-4 p-3 border border-slate-700 rounded-lg text-sm flex items-center justify-center hover:bg-slate-800"><i data-lucide="settings" className="w-4 h-4 mr-2"></i> Settings (API Key)</button>
+                        <div className="p-4 border-t border-slate-800 text-xs text-slate-500 text-center">CatalystBD v3.0 &bull; Professional</div>
                     </div>
 
-                    {/* Main Content Area - Mobile Scrolling Fixed Here */}
-                    <main className="flex-1 relative overflow-hidden flex flex-col pb-16 md:pb-0">
-                        <div className="flex-1 overflow-y-auto w-full h-full">
-                            {activeTab === 'dashboard' && <Dashboard clients={clients} pitches={pitches} openSettings={() => setShowSettings(true)} />}
-                            {activeTab === 'hunter' && <Hunter clients={clients} saveClient={saveClient} deleteClient={deleteClient} getGeminiKey={getGeminiKey} openSettings={() => setShowSettings(true)} />}
-                            {activeTab === 'pitcher' && <Pitcher pitches={pitches} clients={clients} savePitch={savePitch} deletePitch={deletePitch} />}
-                        </div>
+                    {/* Main Content Area (Scrollable properly on Mobile) */}
+                    <main className="flex-1 relative overflow-hidden flex flex-col pb-16 md:pb-0 shadow-[inset_0_0_20px_rgba(0,0,0,0.02)]">
+                        {renderContent()}
                     </main>
 
-                    {/* Mobile Bottom Nav */}
-                    <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t z-50 flex justify-around items-center">
+                    {/* Mobile Bottom Navigation (Hidden on Desktop) */}
+                    <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-200 z-50 flex justify-around items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] pb-safe">
                         {NAV_ITEMS.slice(0,4).map(i => (
-                            <button key={i.id} onClick={() => setActiveTab(i.id)} className={`flex flex-col items-center justify-center w-full h-full ${activeTab === i.id ? 'text-blue-600' : 'text-slate-400'}`}>
-                                <i data-lucide={i.icon} className="w-5 h-5 mb-1"></i><span className="text-[10px]">{i.label.split(' ')[1] || i.label}</span>
+                            <button key={i.id} onClick={() => setActiveTab(i.id)} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${activeTab === i.id ? 'text-blue-600' : 'text-slate-400'}`}>
+                                <i data-lucide={i.icon} className={`w-5 h-5 mb-1 ${activeTab === i.id ? 'fill-blue-100' : ''}`}></i><span className="text-[10px] font-bold">{i.label.split(' ')[1] || i.label}</span>
                             </button>
                         ))}
                     </div>
 
-                    {/* Secure Settings for Gemini Key (Prevents Leaks!) */}
+                    {/* Settings Modal (For Gemini API Key Security) */}
                     {showSettings && (
                         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[300] p-4">
-                            <div className="bg-white rounded-2xl w-full max-w-md p-6">
-                                <div className="flex justify-between mb-4"><h3 className="font-bold text-lg">App Settings</h3><button onClick={() => setShowSettings(false)}><i data-lucide="x" className="w-5 h-5"></i></button></div>
-                                <div className="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg mb-4"><strong>Secure Setup:</strong> Paste your Gemini API key here. It saves locally to your device to prevent GitHub leaks.</div>
-                                <input type="password" value={localGeminiKey} onChange={(e) => setLocalGeminiKey(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm mb-4" placeholder="AIzaSy..." />
-                                <button onClick={() => { localStorage.setItem('gemini_api_key', localGeminiKey); setSuccessMsg("Key saved locally."); setShowSettings(false); }} className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm">Save Key</button>
+                            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+                                <div className="flex justify-between items-center mb-5"><h3 className="font-bold text-xl text-slate-800">App Settings</h3><button onClick={() => setShowSettings(false)} className="text-slate-400 hover:bg-slate-100 p-1.5 rounded-lg"><i data-lucide="x" className="w-5 h-5"></i></button></div>
+                                <div className="bg-blue-50 text-blue-800 text-sm p-4 rounded-xl mb-5 border border-blue-100 leading-relaxed"><strong>Secure API Setup:</strong> Paste your Gemini API key here. It saves locally to this specific device/browser so it will <strong>never</strong> leak to GitHub.</div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Gemini API Key</label>
+                                <input type="password" value={localGeminiKey} onChange={(e) => setLocalGeminiKey(e.target.value)} className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm mb-6 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="AIzaSy..." />
+                                <button onClick={() => { localStorage.setItem('gemini_api_key', localGeminiKey); setSuccessMsg("API Key saved securely to device!"); setShowSettings(false); }} className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl text-sm font-bold shadow-md transition-colors">Save Settings</button>
                             </div>
                         </div>
                     )}
