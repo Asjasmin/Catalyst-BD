@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>CatalystBD Workspace</title>
     
     <!-- Tailwind CSS -->
@@ -24,7 +22,6 @@
     <!-- Supabase JS Client -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
-    <!-- Custom Styles -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { 
@@ -39,7 +36,6 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
         .chat-bubble-ai { background: #f1f5f9; border-bottom-left-radius: 2px; }
         .chat-bubble-user { background: #3b82f6; color: white; border-bottom-right-radius: 2px; }
@@ -62,13 +58,13 @@
         const { useState, useEffect, useRef } = React;
 
         // ==========================================
-        // 🚨 DATABASE KEYS ONLY (DO NOT PUT GEMINI KEY HERE) 🚨
+        // 🚨 PASTE YOUR SUPABASE KEYS HERE 🚨
+        // Do NOT paste your Gemini API key here anymore!
         // ==========================================
         const SUPABASE_URL = "https://wxfpwgtvwrnnzdnljqtz.supabase.co/rest/v1/";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4ZnB3Z3R2d3JubnpkbmxqcXR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3NDc2NzEsImV4cCI6MjEwMTMyMzY3MX0.tZxz4QjRwrB3pKpuzSPsLgJhanI4vNYpIbs5DHNf__I";
 
-        // Initialize Supabase Client safely
-        const supabase = (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_URL.includes('supabase.co')) 
+        const supabase = (SUPABASE_URL !== "https://wxfpwgtvwrnnzdnljqtz.supabase.co/rest/v1/" && SUPABASE_URL.includes('supabase.co')) 
             ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
             : null;
 
@@ -82,12 +78,6 @@
             { id: 'farmer', label: '4. Farmer', icon: 'sprout' }
         ];
 
-        const TikTokIcon = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 15.68a6.34 6.34 0 0 0 6.27 6.32 6.32 6.32 0 0 0 6.22-5.71V8.62a8.3 8.3 0 0 0 4.2 1.13V6.3a4.7 4.7 0 0 1-2.1-.61Z"/>
-            </svg>
-        );
-
         const CatalystLogo = () => (
             <svg viewBox="0 0 100 100" className="w-8 h-8 flex-shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="15" fill="#3b82f6" />
@@ -97,7 +87,6 @@
             </svg>
         );
 
-        // Reusable Confirmation Modal
         const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
             if (!isOpen) return null;
             return (
@@ -106,19 +95,18 @@
                         <h3 className="text-lg font-bold text-slate-800 mb-2">{title}</h3>
                         <p className="text-slate-600 mb-6">{message}</p>
                         <div className="flex justify-end space-x-3">
-                            <button onClick={onCancel} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors">Cancel</button>
-                            <button onClick={onConfirm} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors">Delete</button>
+                            <button onClick={onCancel} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+                            <button onClick={onConfirm} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg">Delete</button>
                         </div>
                     </div>
                 </div>
             );
         };
 
-        // Alert Toast Component for showing errors
         const AlertToast = ({ message, type, onClose }) => {
             if (!message) return null;
             return (
-                <div className={`fixed top-4 right-4 left-4 md:left-auto z-[200] p-4 rounded-xl shadow-lg flex items-center justify-between animate-fade-in-down ${type === 'error' ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'}`}>
+                <div className={`fixed top-4 right-4 left-4 md:left-auto z-[200] p-4 rounded-xl shadow-lg flex items-center justify-between ${type === 'error' ? 'bg-red-600' : 'bg-emerald-600'} text-white`}>
                     <div className="flex items-center">
                         <i data-lucide={type === 'error' ? 'alert-triangle' : 'check-circle'} className="w-5 h-5 mr-3"></i>
                         <p className="font-medium text-sm">{message}</p>
@@ -129,17 +117,14 @@
         };
 
         const Dashboard = ({ clients, pitches, openSettings }) => {
-            const activePitches = pitches.length;
-            const securedClients = clients.filter(c => c.status === "Past").length;
-            
             return (
-                <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6 md:space-y-8">
+                <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Overview</h2>
-                            <p className="text-slate-500 text-sm md:text-base mt-1">Your business development metrics at a glance.</p>
+                            <h2 className="text-2xl font-bold text-slate-800">Overview</h2>
+                            <p className="text-slate-500 text-sm">Your business development metrics.</p>
                         </div>
-                        <button onClick={openSettings} className="p-2 bg-slate-200 text-slate-600 rounded-full hover:bg-slate-300 transition">
+                        <button onClick={openSettings} className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
                             <i data-lucide="settings" className="w-5 h-5"></i>
                         </button>
                     </div>
@@ -149,26 +134,21 @@
                             <i data-lucide="alert-triangle" className="w-5 h-5 mr-3 mt-0.5"></i>
                             <div>
                                 <h4 className="font-bold">Database Not Connected</h4>
-                                <p className="text-sm">Please open your code and add your Supabase URL and Anon Key.</p>
+                                <p className="text-sm">Please check your Supabase Keys in GitHub.</p>
                             </div>
                         </div>
                     )}
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
-                            <div className="p-3 rounded-xl bg-blue-100 text-blue-600 w-12 h-12 flex items-center justify-center mb-3"><i data-lucide="users" className="w-6 h-6"></i></div>
-                            <h3 className="text-2xl font-bold text-slate-800">{clients.length}</h3>
-                            <p className="text-xs text-slate-500 font-medium">Total Leads</p>
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                            <div className="text-blue-600 mb-2"><i data-lucide="users" className="w-6 h-6"></i></div>
+                            <h3 className="text-2xl font-bold">{clients.length}</h3>
+                            <p className="text-xs text-slate-500">Total Leads</p>
                         </div>
-                        <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
-                            <div className="p-3 rounded-xl bg-purple-100 text-purple-600 w-12 h-12 flex items-center justify-center mb-3"><i data-lucide="mic" className="w-6 h-6"></i></div>
-                            <h3 className="text-2xl font-bold text-slate-800">{activePitches}</h3>
-                            <p className="text-xs text-slate-500 font-medium">Active Pitches</p>
-                        </div>
-                        <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
-                            <div className="p-3 rounded-xl bg-emerald-100 text-emerald-600 w-12 h-12 flex items-center justify-center mb-3"><i data-lucide="check-circle" className="w-6 h-6"></i></div>
-                            <h3 className="text-2xl font-bold text-slate-800">{securedClients}</h3>
-                            <p className="text-xs text-slate-500 font-medium">Secured Clients</p>
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                            <div className="text-purple-600 mb-2"><i data-lucide="mic" className="w-6 h-6"></i></div>
+                            <h3 className="text-2xl font-bold">{pitches.length}</h3>
+                            <p className="text-xs text-slate-500">Active Pitches</p>
                         </div>
                     </div>
                 </div>
@@ -184,7 +164,6 @@
             const [isAutoFilling, setIsAutoFilling] = useState(false);
             const [formData, setFormData] = useState({ name: '', contact: '', status: 'Potential', sector: 'Tech', website: '', ig: '', li: '', yt: '', tiktok: '' });
 
-            // Strategy AI State
             const [chatHistory, setChatHistory] = useState([]);
             const [chatInput, setChatInput] = useState('');
             const [isBotTyping, setIsBotTyping] = useState(false);
@@ -194,47 +173,31 @@
 
             const filteredClients = clients.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.sector.toLowerCase().includes(searchQuery.toLowerCase()));
 
-            const openAddModal = () => {
-                setEditingId(null);
-                setFormData({ name: '', contact: '', status: 'Potential', sector: 'Tech', website: '', ig: '', li: '', yt: '', tiktok: '' });
-                setShowModal(true);
-            };
-
             const handleSubmit = (e) => {
                 e.preventDefault();
                 saveClient(formData, editingId);
                 setShowModal(false);
             };
 
-            // Secure AI Call using LocalStorage Key
             const handleAutoFill = async () => {
                 const apiKey = getGeminiKey();
-                if (!apiKey) return openSettings();
+                if (!apiKey) { alert("Please click the Settings gear to add your Gemini API Key first!"); return openSettings(); }
                 if (!formData.name) return alert("Please type a Company Name first!");
 
                 setIsAutoFilling(true);
-                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-                const prompt = `Find the official online presence for "${formData.name}" in Indonesia. Return ONLY a JSON object with these exact keys: website, ig, li, yt, tiktok. Leave empty string if not found.`;
-                
                 try {
-                    const res = await fetch(API_URL, { 
-                        method: 'POST', 
-                        headers: { 'Content-Type': 'application/json' }, 
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, { 
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                         body: JSON.stringify({
-                            contents: [{ parts: [{ text: prompt }] }],
+                            contents: [{ parts: [{ text: `Find official online presence for "${formData.name}" in Indonesia. Return ONLY JSON keys: website, ig, li, yt, tiktok.` }] }],
                             tools: [{ "google_search": {} }],
                             generationConfig: { responseMimeType: "application/json" }
                         }) 
                     });
                     const data = await res.json();
                     if(data.error) throw new Error(data.error.message);
-                    
-                    if(data.candidates?.[0]?.content?.parts?.[0]?.text) {
-                        setFormData(prev => ({ ...prev, ...JSON.parse(data.candidates[0].content.parts[0].text) }));
-                    }
-                } catch (err) { 
-                    alert("AI Error: " + err.message); 
-                }
+                    setFormData(prev => ({ ...prev, ...JSON.parse(data.candidates[0].content.parts[0].text) }));
+                } catch (err) { alert("AI Error: " + err.message); }
                 setIsAutoFilling(false);
             };
 
@@ -243,10 +206,8 @@
                 if(!chatInput.trim()) return;
                 
                 const apiKey = getGeminiKey();
-                if (!apiKey) return openSettings();
+                if (!apiKey) { alert("Please click Settings to add your Gemini API Key!"); return openSettings(); }
 
-                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-                
                 const userMsg = { role: 'user', text: chatInput };
                 setChatHistory(prev => [...prev, userMsg]);
                 setChatInput('');
@@ -256,90 +217,60 @@
                 contents.push({ role: 'user', parts: [{ text: userMsg.text }] });
 
                 try {
-                    const res = await fetch(API_URL, { 
-                        method: 'POST', 
-                        headers: { 'Content-Type': 'application/json' }, 
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, { 
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                         body: JSON.stringify({
-                            contents: contents,
-                            tools: [{ "google_search": {} }],
-                            systemInstruction: { parts: [{ text: "You are an elite Business Development Strategist acting as a 'Catalyst' for an event and creative agency. Provide actionable ideation, market trends, and strategies based on real data.\n\nCRITICAL INSTRUCTION: You MUST structure every single response EXACTLY with these three sections, using these exact headings:\n\n1. **Client Brief Input**: Briefly summarize your understanding of the target client, their current market position, and the core opportunity based on the user's prompt.\n2. **Event Strategy Recommendation**: Provide highly creative, data-backed activation ideas and approaching models. Use real market trends retrieved from your search capabilities.\n3. **Pitch Deck Structure Recommendation**: Outline a recommended slide-by-slide structure (e.g., Slide 1: Hook, Slide 2: Data Insight, etc.) to present these strategies effectively to the client." }] }
+                            contents: contents, tools: [{ "google_search": {} }],
+                            systemInstruction: { parts: [{ text: "You are an elite Business Development Strategist. ALWAYS use this structure:\n1. **Client Brief Input**: Summarize client.\n2. **Event Strategy Recommendation**: Creative ideas based on market trends.\n3. **Pitch Deck Structure Recommendation**: Slide-by-slide outline." }] }
                         }) 
                     });
                     const data = await res.json();
                     if(data.error) throw new Error(data.error.message);
-                    
-                    let text = data.candidates[0].content.parts[0].text;
-                    setChatHistory(prev => [...prev, { role: 'model', text }]);
+                    setChatHistory(prev => [...prev, { role: 'model', text: data.candidates[0].content.parts[0].text }]);
                 } catch (err) {
-                    setChatHistory(prev => [...prev, { role: 'model', text: `**Error connecting to AI:** ${err.message}. Please check your Gemini API key in settings.` }]);
+                    setChatHistory(prev => [...prev, { role: 'model', text: `**Error:** ${err.message}` }]);
                 }
                 setIsBotTyping(false);
             };
 
             return (
                 <div className="h-full flex flex-col bg-white">
-                    <ConfirmModal 
-                        isOpen={deleteConfirm.isOpen} title="Delete Client" message="Are you sure? This cannot be undone."
-                        onConfirm={() => { deleteClient(deleteConfirm.id); setDeleteConfirm({isOpen: false, id: null}); }}
-                        onCancel={() => setDeleteConfirm({isOpen: false, id: null})}
-                    />
+                    <ConfirmModal isOpen={deleteConfirm.isOpen} title="Delete Client" message="Are you sure?" onConfirm={() => { deleteClient(deleteConfirm.id); setDeleteConfirm({isOpen: false, id: null}); }} onCancel={() => setDeleteConfirm({isOpen: false, id: null})} />
 
-                    <div className="px-4 py-4 md:px-8 md:py-6 border-b border-slate-200 flex flex-col md:flex-row md:justify-between bg-slate-50 space-y-4 md:space-y-0 shrink-0">
+                    <div className="p-4 border-b bg-slate-50 flex flex-col md:flex-row md:justify-between space-y-3 md:space-y-0 shrink-0">
                         <div>
-                            <h2 className="text-xl md:text-2xl font-bold text-slate-800 flex items-center">
-                                <i data-lucide="target" className="w-5 h-5 mr-2 text-blue-600"></i> The Hunter
-                            </h2>
-                            <p className="text-slate-500 text-xs md:text-sm mt-1">CRM Pipeline & AI Strategy</p>
+                            <h2 className="text-xl font-bold flex items-center"><i data-lucide="target" className="w-5 h-5 mr-2 text-blue-600"></i> The Hunter</h2>
                         </div>
-                        <div className="flex space-x-1 bg-slate-200 p-1 rounded-lg self-start">
-                            <button onClick={() => setView('crm')} className={`px-3 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${view === 'crm' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>CRM Tracker</button>
-                            <button onClick={() => setView('strategy')} className={`px-3 py-2 rounded-md text-xs md:text-sm font-medium transition-colors flex items-center ${view === 'strategy' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>
-                                <i data-lucide="sparkles" className="w-4 h-4 mr-1 text-purple-500"></i> AI Strategist
-                            </button>
+                        <div className="flex space-x-1 bg-slate-200 p-1 rounded-lg">
+                            <button onClick={() => setView('crm')} className={`px-3 py-1.5 rounded-md text-sm ${view === 'crm' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`}>CRM Tracker</button>
+                            <button onClick={() => setView('strategy')} className={`px-3 py-1.5 rounded-md text-sm flex items-center ${view === 'strategy' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`}><i data-lucide="sparkles" className="w-4 h-4 mr-1 text-purple-500"></i> AI Strategist</button>
                         </div>
                     </div>
 
-                    {/* CRM View */}
                     {view === 'crm' && (
-                        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
-                            <div className="flex flex-col md:flex-row md:justify-between mb-4 space-y-3 md:space-y-0">
+                        <div className="flex-1 overflow-y-auto p-4 bg-slate-50">
+                            <div className="flex flex-col md:flex-row justify-between mb-4 space-y-2 md:space-y-0">
                                 <div className="relative w-full md:w-64">
                                     <i data-lucide="search" className="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
                                     <input type="text" placeholder="Search clients..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 rounded-lg border text-sm" />
                                 </div>
-                                <button onClick={openAddModal} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center shadow-sm">
+                                <button onClick={() => { setEditingId(null); setFormData({ name: '', contact: '', status: 'Potential', sector: 'Tech', website: '', ig: '', li: '', yt: '', tiktok: '' }); setShowModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm flex items-center justify-center">
                                     <i data-lucide="plus" className="w-4 h-4 mr-1"></i> Add Target
                                 </button>
                             </div>
                             
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-                                <table className="w-full text-left min-w-[800px]">
-                                    <thead className="bg-slate-100 border-b text-slate-500 text-xs uppercase">
-                                        <tr>
-                                            <th className="p-4">Company</th>
-                                            <th className="p-4">Status & Sector</th>
-                                            <th className="p-4">Contact</th>
-                                            <th className="p-4">Socials</th>
-                                            <th className="p-4 text-right">Actions</th>
-                                        </tr>
+                            <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
+                                <table className="w-full text-left min-w-[700px]">
+                                    <thead className="bg-slate-100 text-slate-500 text-xs">
+                                        <tr><th className="p-4">Company</th><th className="p-4">Status & Sector</th><th className="p-4">Actions</th></tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100 text-sm">
+                                    <tbody className="divide-y text-sm">
                                         {filteredClients.map(c => (
-                                            <tr key={c.id} className="hover:bg-slate-50">
-                                                <td className="p-4 font-semibold text-slate-800">{c.name}</td>
-                                                <td className="p-4">
-                                                    <span className="block text-xs font-semibold text-slate-600">{c.sector}</span>
-                                                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase ${c.status === 'Potential' ? 'bg-slate-100 text-slate-500' : c.status === 'Approaching' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'}`}>{c.status}</span>
-                                                </td>
-                                                <td className="p-4 text-slate-600">{c.contact || '-'}</td>
-                                                <td className="p-4">
-                                                    <div className="flex space-x-3 text-slate-400">
-                                                        {c.li && <a href={c.li} target="_blank"><i data-lucide="linkedin" className="w-4 h-4 hover:text-blue-700"></i></a>}
-                                                        {c.ig && <a href={c.ig} target="_blank"><i data-lucide="instagram" className="w-4 h-4 hover:text-pink-600"></i></a>}
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 text-right space-x-2">
-                                                    <button onClick={() => { setEditingId(c.id); setFormData(c); setShowModal(true); }} className="p-1.5 bg-slate-100 text-slate-600 rounded"><i data-lucide="edit" className="w-4 h-4"></i></button>
+                                            <tr key={c.id}>
+                                                <td className="p-4 font-semibold">{c.name}</td>
+                                                <td className="p-4"><span className="block text-xs text-slate-500">{c.sector}</span><span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded font-bold">{c.status}</span></td>
+                                                <td className="p-4 space-x-2">
+                                                    <button onClick={() => { setEditingId(c.id); setFormData(c); setShowModal(true); }} className="p-1.5 bg-slate-100 rounded"><i data-lucide="edit" className="w-4 h-4"></i></button>
                                                     <button onClick={() => setDeleteConfirm({isOpen: true, id: c.id})} className="p-1.5 bg-red-50 text-red-600 rounded"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
                                                 </td>
                                             </tr>
@@ -350,53 +281,40 @@
                         </div>
                     )}
 
-                    {/* Strategy View */}
                     {view === 'strategy' && (
                         <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden">
                             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                                {chatHistory.length === 0 && (
-                                    <div className="flex flex-col items-center justify-center text-center mt-10">
-                                        <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4"><i data-lucide="sparkles" className="w-8 h-8 text-blue-600"></i></div>
-                                        <h3 className="text-xl font-bold text-slate-800">Catalyst Intelligence</h3>
-                                        <p className="text-slate-500 text-sm max-w-sm">Ask me to research a potential client. I will generate event strategies and outline a pitch deck structure for you.</p>
-                                    </div>
-                                )}
+                                {chatHistory.length === 0 && <div className="text-center mt-10 text-slate-500">Ask AI Strategist to research a brand!</div>}
                                 {chatHistory.map((msg, i) => (
                                     <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                         <div className={`max-w-[90%] p-4 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white border'}`} dangerouslySetInnerHTML={{__html: msg.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>')}}></div>
                                     </div>
                                 ))}
-                                {isBotTyping && <div className="p-4 bg-white border rounded-2xl w-16 flex space-x-1"><div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div><div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay:'0.2s'}}></div></div>}
+                                {isBotTyping && <div className="p-4 bg-white border w-16 text-slate-400">...</div>}
                                 <div ref={chatEndRef}></div>
                             </div>
-                            <div className="p-3 bg-white border-t">
-                                <form onSubmit={handleSendChat} className="flex relative">
-                                    <input type="text" value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder="Ask AI Strategist..." className="w-full pl-4 pr-12 py-3 rounded-xl border text-sm" />
-                                    <button type="submit" disabled={isBotTyping} className="absolute right-2 top-2 bottom-2 bg-blue-600 text-white rounded-lg px-3"><i data-lucide="send" className="w-4 h-4"></i></button>
-                                </form>
-                            </div>
+                            <form onSubmit={handleSendChat} className="p-3 bg-white border-t flex relative">
+                                <input type="text" value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder="Ask Strategy AI..." className="w-full pl-4 pr-12 py-3 rounded-xl border text-sm" />
+                                <button type="submit" disabled={isBotTyping} className="absolute right-4 top-4 bg-blue-600 text-white rounded-lg p-1.5"><i data-lucide="send" className="w-4 h-4"></i></button>
+                            </form>
                         </div>
                     )}
 
-                    {/* Add Client Modal */}
                     {showModal && (
-                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-                                <div className="px-6 py-4 border-b flex justify-between items-center"><h3 className="font-bold text-lg">{editingId ? 'Edit Client' : 'Add Client'}</h3><button onClick={() => setShowModal(false)}><i data-lucide="x" className="w-5 h-5"></i></button></div>
-                                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div><label className="block text-xs font-semibold mb-1">Company Name *</label><input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
-                                        <div className="flex items-end"><button type="button" onClick={handleAutoFill} disabled={isAutoFilling} className="w-full bg-indigo-50 text-indigo-700 py-2 rounded-lg text-sm flex justify-center items-center">{isAutoFilling ? <div className="spinner w-4 h-4 mr-2 border-indigo-600"></div> : <i data-lucide="sparkles" className="w-4 h-4 mr-2"></i>} Spark AI Auto-fill</button></div>
+                        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+                                <div className="p-4 border-b flex justify-between"><h3 className="font-bold">{editingId ? 'Edit' : 'Add'} Client</h3><button onClick={() => setShowModal(false)}><i data-lucide="x" className="w-5 h-5"></i></button></div>
+                                <form onSubmit={handleSubmit} className="p-4 overflow-y-auto space-y-3">
+                                    <label className="block text-xs font-semibold">Company Name *</label>
+                                    <input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                                    <button type="button" onClick={handleAutoFill} className="w-full bg-indigo-50 text-indigo-700 py-2 rounded-lg text-sm flex justify-center"><i data-lucide="sparkles" className="w-4 h-4 mr-2"></i> Auto-fill Socials</button>
+                                    
+                                    <label className="block text-xs font-semibold">Sector & Status</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <select value={formData.sector} onChange={e=>setFormData({...formData, sector: e.target.value})} className="border rounded-lg px-3 py-2 text-sm">{SECTORS.map(s => <option key={s} value={s}>{s}</option>)}</select>
+                                        <select value={formData.status} onChange={e=>setFormData({...formData, status: e.target.value})} className="border rounded-lg px-3 py-2 text-sm">{STATUSES.map(s => <option key={s} value={s}>{s}</option>)}</select>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="col-span-2"><label className="block text-xs font-semibold mb-1">Contact Person</label><input type="text" value={formData.contact} onChange={e=>setFormData({...formData, contact: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
-                                        <div><label className="block text-xs font-semibold mb-1">Sector</label><select value={formData.sector} onChange={e=>setFormData({...formData, sector: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-white">{SECTORS.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
-                                        <div><label className="block text-xs font-semibold mb-1">Status</label><select value={formData.status} onChange={e=>setFormData({...formData, status: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-white">{STATUSES.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
-                                    </div>
-                                    <div className="flex justify-end pt-4 space-x-3">
-                                        <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-slate-100 rounded-lg text-sm">Cancel</button>
-                                        <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm">Save Client</button>
-                                    </div>
+                                    <button type="submit" className="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg text-sm">Save Client</button>
                                 </form>
                             </div>
                         </div>
@@ -406,79 +324,40 @@
         };
 
         const Pitcher = ({ pitches, clients, savePitch, deletePitch }) => {
-            const [searchQuery, setSearchQuery] = useState('');
             const [showModal, setShowModal] = useState(false);
-            const [editingId, setEditingId] = useState(null);
+            const [formData, setFormData] = useState({ client_id: '', name: '', deck_link: '' });
             const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: null });
-            const [formData, setFormData] = useState({ client_id: '', name: '', deck_link: '', sub_date: '', pitch_date: '', event_date: '' });
-
-            const filteredPitches = pitches.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                if (!formData.client_id) return alert("Please select a client.");
-                savePitch(formData, editingId);
-                setShowModal(false);
-            };
 
             return (
                 <div className="h-full flex flex-col bg-slate-50">
-                    <ConfirmModal 
-                        isOpen={deleteConfirm.isOpen} title="Delete Pitch" message="Are you sure you want to delete this pitch?"
-                        onConfirm={() => { deletePitch(deleteConfirm.id); setDeleteConfirm({isOpen: false, id: null}); }}
-                        onCancel={() => setDeleteConfirm({isOpen: false, id: null})}
-                    />
-
-                    <div className="px-4 py-4 md:px-8 md:py-6 flex flex-col md:flex-row justify-between bg-white border-b space-y-4 shrink-0">
-                        <div>
-                            <h2 className="text-xl md:text-2xl font-bold text-slate-800 flex items-center">
-                                <i data-lucide="presentation" className="w-5 h-5 mr-2 text-purple-600"></i> The Pitcher
-                            </h2>
-                        </div>
-                        <div className="flex space-x-2">
-                            <input type="text" placeholder="Search projects..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full md:w-64 px-4 py-2 rounded-lg border text-sm" />
-                            <button onClick={() => { setEditingId(null); setFormData({ client_id: clients[0]?.id || '', name: '', deck_link: '', sub_date: '', pitch_date: '', event_date: '' }); setShowModal(true); }} className="bg-purple-600 text-white px-3 py-2 rounded-lg text-sm font-medium flex items-center shrink-0">
-                                <i data-lucide="plus" className="w-4 h-4 mr-1"></i> New
-                            </button>
-                        </div>
+                    <ConfirmModal isOpen={deleteConfirm.isOpen} title="Delete Pitch" message="Are you sure?" onConfirm={() => { deletePitch(deleteConfirm.id); setDeleteConfirm({isOpen: false, id: null}); }} onCancel={() => setDeleteConfirm({isOpen: false, id: null})} />
+                    <div className="p-4 flex justify-between items-center bg-white border-b shrink-0">
+                        <h2 className="text-xl font-bold flex items-center"><i data-lucide="presentation" className="w-5 h-5 mr-2 text-purple-600"></i> The Pitcher</h2>
+                        <button onClick={() => { setFormData({ client_id: clients[0]?.id || '', name: '', deck_link: '' }); setShowModal(true); }} className="bg-purple-600 text-white px-3 py-2 rounded-lg text-sm"><i data-lucide="plus" className="w-4 h-4 inline"></i> New</button>
                     </div>
-
-                    <div className="p-4 md:p-8 flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredPitches.map(p => {
-                            const client = clients.find(c => c.id === p.client_id);
-                            return (
-                                <div key={p.id} className="bg-white rounded-2xl shadow-sm border p-5 flex flex-col relative group">
-                                    <div className="absolute top-4 right-4 flex space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => { setEditingId(p.id); setFormData(p); setShowModal(true); }} className="p-1.5 bg-slate-100 rounded"><i data-lucide="edit" className="w-4 h-4"></i></button>
-                                        <button onClick={() => setDeleteConfirm({isOpen: true, id: p.id})} className="p-1.5 bg-red-50 text-red-600 rounded"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
-                                    </div>
-                                    <h3 className="font-bold text-lg pr-16 leading-tight">{p.name}</h3>
-                                    <p className="text-sm text-purple-600 font-medium mb-4 mt-1">{client ? client.name : 'Unknown Client'}</p>
-                                    
-                                    <div className="space-y-3 mb-6 flex-1 text-sm text-slate-600">
-                                        <div className="flex items-center"><i data-lucide="calendar" className="w-4 h-4 mr-2 text-blue-500"></i>Pitch: {p.pitch_date ? new Date(p.pitch_date).toLocaleString() : '-'}</div>
-                                    </div>
-                                    <div className="flex pt-4 border-t border-slate-100">
-                                        {p.deck_link ? (
-                                            <a href={p.deck_link} target="_blank" className="flex-1 bg-slate-100 text-center py-2 rounded-lg text-sm font-medium"><i data-lucide="link" className="w-4 h-4 inline mr-1"></i> Deck</a>
-                                        ) : (
-                                            <div className="flex-1 bg-slate-50 text-slate-400 text-center py-2 rounded-lg text-sm">No Deck</div>
-                                        )}
-                                    </div>
+                    
+                    <div className="p-4 flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {pitches.map(p => (
+                            <div key={p.id} className="bg-white rounded-xl shadow-sm border p-4">
+                                <div className="flex justify-between">
+                                    <h3 className="font-bold">{p.name}</h3>
+                                    <button onClick={() => setDeleteConfirm({isOpen: true, id: p.id})} className="text-red-500"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
                                 </div>
-                            )
-                        })}
+                                <p className="text-sm text-purple-600 mb-4">{clients.find(c => c.id === p.client_id)?.name}</p>
+                                {p.deck_link && <a href={p.deck_link} target="_blank" className="block text-center bg-slate-100 py-2 rounded text-sm"><i data-lucide="link" className="w-4 h-4 inline"></i> View Deck</a>}
+                            </div>
+                        ))}
                     </div>
 
                     {showModal && (
                         <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden">
-                                <div className="px-6 py-4 border-b flex justify-between items-center"><h3 className="font-bold">{editingId ? 'Edit' : 'New'} Pitch</h3><button onClick={() => setShowModal(false)}><i data-lucide="x" className="w-5 h-5"></i></button></div>
-                                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                                    <div><label className="block text-xs font-semibold mb-1">Client *</label><select required value={formData.client_id} onChange={e=>setFormData({...formData, client_id: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm"><option value="">Select a client...</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-                                    <div><label className="block text-xs font-semibold mb-1">Project Name *</label><input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
-                                    <div><label className="block text-xs font-semibold mb-1">Deck Link</label><input type="url" value={formData.deck_link} onChange={e=>setFormData({...formData, deck_link: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
-                                    <div className="pt-4 flex justify-end space-x-3"><button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-slate-100 rounded-lg text-sm">Cancel</button><button type="submit" className="px-6 py-2 bg-purple-600 text-white rounded-lg text-sm">Save</button></div>
+                            <div className="bg-white rounded-2xl w-full max-w-sm p-4">
+                                <h3 className="font-bold mb-4">New Pitch</h3>
+                                <form onSubmit={(e) => { e.preventDefault(); savePitch(formData, null); setShowModal(false); }} className="space-y-3">
+                                    <select required value={formData.client_id} onChange={e=>setFormData({...formData, client_id: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm"><option value="">Select Client...</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+                                    <input required type="text" placeholder="Pitch Name" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                                    <input type="url" placeholder="Deck Link" value={formData.deck_link} onChange={e=>setFormData({...formData, deck_link: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                                    <button type="submit" className="w-full bg-purple-600 text-white py-2 rounded-lg">Save</button>
                                 </form>
                             </div>
                         </div>
@@ -502,115 +381,66 @@
                 if(!supabase) return;
                 const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
                 if(data) setClients(data);
-                if(error) setErrorMsg("Could not load clients. Check database setup.");
+                if(error) setErrorMsg("Database Error: " + error.message);
             };
 
             const fetchPitches = async () => {
                 if(!supabase) return;
                 const { data, error } = await supabase.from('pitches').select('*').order('created_at', { ascending: false });
                 if(data) setPitches(data);
-                if(error) setErrorMsg("Could not load pitches.");
+                if(error) setErrorMsg("Database Error: " + error.message);
             };
 
-            useEffect(() => {
-                if(!supabase) return;
-                fetchClients();
-                fetchPitches();
-            }, []);
+            useEffect(() => { fetchClients(); fetchPitches(); }, []);
+            useEffect(() => { lucide.createIcons(); });
 
-            useEffect(() => { lucide.createIcons(); }, [activeTab, clients, pitches, showSettings, errorMsg, successMsg]);
-
-            // Robust Database Operations with Error Handling
             const saveClient = async (data, id) => {
                 if(!supabase) return setErrorMsg("Database not connected!");
-                const payload = { ...data };
-                delete payload.id; delete payload.created_at;
-
                 try {
-                    let result;
-                    if (id) result = await supabase.from('clients').update(payload).eq('id', id);
-                    else result = await supabase.from('clients').insert([payload]);
-                    
-                    if (result.error) throw result.error;
-                    setSuccessMsg("Client saved successfully!");
-                    fetchClients();
-                } catch (err) {
-                    setErrorMsg("Failed to save: " + err.message);
-                }
+                    let res = id ? await supabase.from('clients').update(data).eq('id', id) : await supabase.from('clients').insert([data]);
+                    if (res.error) throw res.error;
+                    setSuccessMsg("Saved!"); fetchClients();
+                } catch (err) { setErrorMsg(err.message); }
             };
+
             const deleteClient = async (id) => {
-                if(!supabase) return;
                 try {
-                    const { error } = await supabase.from('clients').delete().eq('id', id);
-                    if(error) throw error;
-                    setSuccessMsg("Client deleted.");
-                    fetchClients();
-                } catch (err) { setErrorMsg("Failed to delete: " + err.message); }
+                    let res = await supabase.from('clients').delete().eq('id', id);
+                    if(res.error) throw res.error; fetchClients();
+                } catch (err) { setErrorMsg(err.message); }
             };
             
-            const savePitch = async (data, id) => {
-                if(!supabase) return setErrorMsg("Database not connected!");
-                const payload = { ...data };
-                delete payload.id; delete payload.created_at;
-                if(!payload.sub_date) payload.sub_date = null;
-                if(!payload.pitch_date) payload.pitch_date = null;
-                if(!payload.event_date) payload.event_date = null;
-
+            const savePitch = async (data) => {
                 try {
-                    let result;
-                    if (id) result = await supabase.from('pitches').update(payload).eq('id', id);
-                    else result = await supabase.from('pitches').insert([payload]);
-                    
-                    if (result.error) throw result.error;
-                    setSuccessMsg("Pitch saved!");
-                    fetchPitches();
-                } catch (err) { setErrorMsg("Failed to save pitch: " + err.message); }
+                    let res = await supabase.from('pitches').insert([data]);
+                    if (res.error) throw res.error; fetchPitches();
+                } catch (err) { setErrorMsg(err.message); }
             };
+
             const deletePitch = async (id) => {
-                if(!supabase) return;
-                try {
-                    const { error } = await supabase.from('pitches').delete().eq('id', id);
-                    if(error) throw error;
-                    setSuccessMsg("Pitch deleted.");
-                    fetchPitches();
-                } catch (err) { setErrorMsg("Failed to delete: " + err.message); }
+                try { await supabase.from('pitches').delete().eq('id', id); fetchPitches(); } catch (err) { setErrorMsg(err.message); }
             };
 
             return (
-                <div className="flex flex-col md:flex-row h-full overflow-hidden bg-slate-100 font-sans">
-                    
+                <div className="flex flex-col md:flex-row h-full overflow-hidden bg-slate-100">
                     <AlertToast message={errorMsg} type="error" onClose={() => setErrorMsg(null)} />
                     <AlertToast message={successMsg} type="success" onClose={() => setSuccessMsg(null)} />
 
-                    {/* Desktop Sidebar */}
+                    {/* Desktop Nav */}
                     <div className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col h-full shrink-0">
-                        <div className="p-6 flex items-center mb-4 border-b border-slate-800">
-                            <CatalystLogo />
-                            <h1 className="ml-3 text-xl font-bold text-white tracking-tight">Catalyst<span className="text-blue-500">BD</span></h1>
-                        </div>
+                        <div className="p-6 flex items-center mb-4"><CatalystLogo /><h1 className="ml-3 font-bold text-white">CatalystBD</h1></div>
                         <nav className="flex-1 px-4 space-y-2">
-                            {NAV_ITEMS.map(i => (
-                                <button key={i.id} onClick={() => setActiveTab(i.id)} className={`w-full flex items-center p-3 rounded-lg transition-colors ${activeTab === i.id ? 'bg-blue-600 text-white' : 'hover:bg-slate-800'}`}>
-                                    <i data-lucide={i.icon} className="w-5 h-5 mr-3"></i><span className="font-medium">{i.label}</span>
-                                </button>
-                            ))}
+                            {NAV_ITEMS.map(i => <button key={i.id} onClick={() => setActiveTab(i.id)} className={`w-full flex p-3 rounded-lg ${activeTab === i.id ? 'bg-blue-600 text-white' : 'hover:bg-slate-800'}`}><i data-lucide={i.icon} className="w-5 h-5 mr-3"></i>{i.label}</button>)}
                         </nav>
-                        <button onClick={() => setShowSettings(true)} className="m-4 p-3 border border-slate-700 rounded-lg text-sm flex items-center justify-center hover:bg-slate-800"><i data-lucide="settings" className="w-4 h-4 mr-2"></i> Settings</button>
+                        <button onClick={() => setShowSettings(true)} className="m-4 p-3 border border-slate-700 rounded-lg text-sm flex items-center justify-center hover:bg-slate-800"><i data-lucide="settings" className="w-4 h-4 mr-2"></i> Settings (API Key)</button>
                     </div>
 
-                    {/* Main Content - Fix Mobile Scroll */}
+                    {/* Main Content Area - Mobile Scrolling Fixed Here */}
                     <main className="flex-1 relative overflow-hidden flex flex-col pb-16 md:pb-0">
                         <div className="flex-1 overflow-y-auto w-full h-full">
                             {activeTab === 'dashboard' && <Dashboard clients={clients} pitches={pitches} openSettings={() => setShowSettings(true)} />}
                             {activeTab === 'hunter' && <Hunter clients={clients} saveClient={saveClient} deleteClient={deleteClient} getGeminiKey={getGeminiKey} openSettings={() => setShowSettings(true)} />}
                             {activeTab === 'pitcher' && <Pitcher pitches={pitches} clients={clients} savePitch={savePitch} deletePitch={deletePitch} />}
-                            {(activeTab === 'manager' || activeTab === 'farmer') && (
-                                <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50">
-                                    <div className="w-24 h-24 rounded-3xl bg-amber-100 text-amber-500 flex items-center justify-center mb-6"><i data-lucide="tool" className="w-12 h-12"></i></div>
-                                    <h2 className="text-2xl font-bold mb-2">Module In Development</h2>
-                                    <p className="text-slate-500">This feature is coming in Phase 2.</p>
-                                </div>
-                            )}
                         </div>
                     </main>
 
@@ -618,36 +448,19 @@
                     <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t z-50 flex justify-around items-center">
                         {NAV_ITEMS.slice(0,4).map(i => (
                             <button key={i.id} onClick={() => setActiveTab(i.id)} className={`flex flex-col items-center justify-center w-full h-full ${activeTab === i.id ? 'text-blue-600' : 'text-slate-400'}`}>
-                                <i data-lucide={i.icon} className="w-5 h-5 mb-1"></i>
-                                <span className="text-[10px] font-medium">{i.label.split(' ')[1] || i.label}</span>
+                                <i data-lucide={i.icon} className="w-5 h-5 mb-1"></i><span className="text-[10px]">{i.label.split(' ')[1] || i.label}</span>
                             </button>
                         ))}
                     </div>
 
-                    {/* Secure Settings Modal (Fix API Leak) */}
+                    {/* Secure Settings for Gemini Key (Prevents Leaks!) */}
                     {showSettings && (
                         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[300] p-4">
                             <div className="bg-white rounded-2xl w-full max-w-md p-6">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="font-bold text-lg text-slate-800">App Settings</h3>
-                                    <button onClick={() => setShowSettings(false)} className="text-slate-500 hover:text-slate-800"><i data-lucide="x" className="w-5 h-5"></i></button>
-                                </div>
-                                <div className="bg-blue-50 border border-blue-200 text-blue-800 text-xs p-3 rounded-lg mb-4">
-                                    <strong>Secure Setup:</strong> Enter your Gemini API key here. It will be saved securely on this specific device and never uploaded to GitHub.
-                                </div>
-                                <label className="block text-sm font-semibold mb-2">Gemini AI API Key</label>
-                                <input 
-                                    type="password" 
-                                    value={localGeminiKey} 
-                                    onChange={(e) => setLocalGeminiKey(e.target.value)}
-                                    className="w-full border rounded-lg px-3 py-2 text-sm mb-4" 
-                                    placeholder="AIzaSy..."
-                                />
-                                <button onClick={() => {
-                                    localStorage.setItem('gemini_api_key', localGeminiKey);
-                                    setSuccessMsg("Key saved securely to this device.");
-                                    setShowSettings(false);
-                                }} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium text-sm">Save Settings</button>
+                                <div className="flex justify-between mb-4"><h3 className="font-bold text-lg">App Settings</h3><button onClick={() => setShowSettings(false)}><i data-lucide="x" className="w-5 h-5"></i></button></div>
+                                <div className="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg mb-4"><strong>Secure Setup:</strong> Paste your Gemini API key here. It saves locally to your device to prevent GitHub leaks.</div>
+                                <input type="password" value={localGeminiKey} onChange={(e) => setLocalGeminiKey(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm mb-4" placeholder="AIzaSy..." />
+                                <button onClick={() => { localStorage.setItem('gemini_api_key', localGeminiKey); setSuccessMsg("Key saved locally."); setShowSettings(false); }} className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm">Save Key</button>
                             </div>
                         </div>
                     )}
