@@ -33,6 +33,9 @@
             color: #0f172a;
             -webkit-tap-highlight-color: transparent;
         }
+        /* Mobile Scroll Fixes */
+        html, body, #root { height: 100%; width: 100%; overflow: hidden; }
+        
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -50,32 +53,25 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .mobile-pb { padding-bottom: 80px; }
-        @media (min-width: 768px) { .mobile-pb { padding-bottom: 0; } }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root" class="h-full"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
         // ==========================================
-        // 🚨 REPLACE THESE WITH YOUR ACTUAL KEYS 🚨
+        // 🚨 DATABASE KEYS ONLY (DO NOT PUT GEMINI KEY HERE) 🚨
         // ==========================================
         const SUPABASE_URL = "https://wxfpwgtvwrnnzdnljqtz.supabase.co/rest/v1/";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4ZnB3Z3R2d3JubnpkbmxqcXR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3NDc2NzEsImV4cCI6MjEwMTMyMzY3MX0.tZxz4QjRwrB3pKpuzSPsLgJhanI4vNYpIbs5DHNf__I";
-        const GEMINI_API_KEY = "AQ.Ab8RN6Jl93JqyWy2_mwnioux4aLpQN12cUJm9GOKvRcEu3ffMw"; 
-        
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`;
 
-        // Initialize Supabase Client
-        const supabase = (SUPABASE_URL !== "YOUR_SUPABASE_URL") 
+        // Initialize Supabase Client safely
+        const supabase = (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_URL.includes('supabase.co')) 
             ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
             : null;
 
-        // Constants
         const SECTORS = ["Tech", "Telecommunication", "Financial", "Brand Consumer & FMCG", "Government", "Automotive", "Other"];
         const STATUSES = ["Potential", "Approaching", "Past"];
         const NAV_ITEMS = [
@@ -101,6 +97,7 @@
             </svg>
         );
 
+        // Reusable Confirmation Modal
         const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
             if (!isOpen) return null;
             return (
@@ -117,84 +114,77 @@
             );
         };
 
-        const Dashboard = ({ clients, pitches }) => {
-            const metrics = [
-                { label: "Total Leads", value: clients.length, icon: "users", color: "text-blue-600", bg: "bg-blue-100" },
-                { label: "Active Pitches", value: pitches.length, icon: "mic", color: "text-purple-600", bg: "bg-purple-100" },
-                { label: "Secured Clients", value: clients.filter(c => c.status === "Past").length, icon: "check-circle", color: "text-emerald-600", bg: "bg-emerald-100" }
-            ];
-
+        // Alert Toast Component for showing errors
+        const AlertToast = ({ message, type, onClose }) => {
+            if (!message) return null;
             return (
-                <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6 md:space-y-8 h-full overflow-y-auto mobile-pb">
-                    <div>
-                        <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Overview</h2>
-                        <p className="text-slate-500 text-sm md:text-base mt-1">Your business development metrics at a glance.</p>
+                <div className={`fixed top-4 right-4 left-4 md:left-auto z-[200] p-4 rounded-xl shadow-lg flex items-center justify-between animate-fade-in-down ${type === 'error' ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'}`}>
+                    <div className="flex items-center">
+                        <i data-lucide={type === 'error' ? 'alert-triangle' : 'check-circle'} className="w-5 h-5 mr-3"></i>
+                        <p className="font-medium text-sm">{message}</p>
+                    </div>
+                    <button onClick={onClose} className="ml-4 opacity-80 hover:opacity-100"><i data-lucide="x" className="w-4 h-4"></i></button>
+                </div>
+            );
+        };
+
+        const Dashboard = ({ clients, pitches, openSettings }) => {
+            const activePitches = pitches.length;
+            const securedClients = clients.filter(c => c.status === "Past").length;
+            
+            return (
+                <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6 md:space-y-8">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Overview</h2>
+                            <p className="text-slate-500 text-sm md:text-base mt-1">Your business development metrics at a glance.</p>
+                        </div>
+                        <button onClick={openSettings} className="p-2 bg-slate-200 text-slate-600 rounded-full hover:bg-slate-300 transition">
+                            <i data-lucide="settings" className="w-5 h-5"></i>
+                        </button>
                     </div>
                     
                     {!supabase && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start">
                             <i data-lucide="alert-triangle" className="w-5 h-5 mr-3 mt-0.5"></i>
                             <div>
-                                <h4 className="font-bold">Supabase Not Connected</h4>
-                                <p className="text-sm">Please open the code and add your Supabase URL and Anon Key to enable saving.</p>
+                                <h4 className="font-bold">Database Not Connected</h4>
+                                <p className="text-sm">Please open your code and add your Supabase URL and Anon Key.</p>
                             </div>
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                        {metrics.map((m, i) => (
-                            <div key={i} className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-slate-500 font-medium mb-1">{m.label}</p>
-                                    <h3 className="text-2xl md:text-3xl font-bold text-slate-800">{m.value}</h3>
-                                </div>
-                                <div className={`p-3 md:p-4 rounded-xl ${m.bg} ${m.color}`}>
-                                    <i data-lucide={m.icon} className="w-5 h-5 md:w-6 md:h-6"></i>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6">
-                        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
-                            <i data-lucide="target" className="w-5 h-5 mr-2 text-purple-500"></i> Recent Leads
-                        </h3>
-                        <div className="space-y-4">
-                            {clients.length === 0 ? <p className="text-slate-500 text-sm">No leads yet.</p> : 
-                            clients.slice(0, 5).map(c => (
-                                <div key={c.id} className="flex justify-between items-center p-3 md:p-4 border border-slate-100 rounded-xl bg-slate-50">
-                                    <div className="flex items-center">
-                                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold mr-3 flex-shrink-0">
-                                            {c.name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-sm md:text-base text-slate-800 truncate max-w-[150px] md:max-w-xs">{c.name}</p>
-                                            <p className="text-xs text-slate-500">{c.sector}</p>
-                                        </div>
-                                    </div>
-                                    <span className={`text-xs px-2 py-1 rounded-md font-medium whitespace-nowrap ${
-                                        c.status === 'Potential' ? 'bg-slate-200 text-slate-700' :
-                                        c.status === 'Approaching' ? 'bg-blue-100 text-blue-700' :
-                                        'bg-emerald-100 text-emerald-700'
-                                    }`}>{c.status}</span>
-                                </div>
-                            ))}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <div className="p-3 rounded-xl bg-blue-100 text-blue-600 w-12 h-12 flex items-center justify-center mb-3"><i data-lucide="users" className="w-6 h-6"></i></div>
+                            <h3 className="text-2xl font-bold text-slate-800">{clients.length}</h3>
+                            <p className="text-xs text-slate-500 font-medium">Total Leads</p>
+                        </div>
+                        <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <div className="p-3 rounded-xl bg-purple-100 text-purple-600 w-12 h-12 flex items-center justify-center mb-3"><i data-lucide="mic" className="w-6 h-6"></i></div>
+                            <h3 className="text-2xl font-bold text-slate-800">{activePitches}</h3>
+                            <p className="text-xs text-slate-500 font-medium">Active Pitches</p>
+                        </div>
+                        <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <div className="p-3 rounded-xl bg-emerald-100 text-emerald-600 w-12 h-12 flex items-center justify-center mb-3"><i data-lucide="check-circle" className="w-6 h-6"></i></div>
+                            <h3 className="text-2xl font-bold text-slate-800">{securedClients}</h3>
+                            <p className="text-xs text-slate-500 font-medium">Secured Clients</p>
                         </div>
                     </div>
                 </div>
             );
         };
 
-        const Hunter = ({ clients, saveClient, deleteClient }) => {
+        const Hunter = ({ clients, saveClient, deleteClient, getGeminiKey, openSettings }) => {
             const [view, setView] = useState('crm'); 
             const [searchQuery, setSearchQuery] = useState('');
             const [showModal, setShowModal] = useState(false);
             const [editingId, setEditingId] = useState(null);
             const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: null });
             const [isAutoFilling, setIsAutoFilling] = useState(false);
-            
             const [formData, setFormData] = useState({ name: '', contact: '', status: 'Potential', sector: 'Tech', website: '', ig: '', li: '', yt: '', tiktok: '' });
 
+            // Strategy AI State
             const [chatHistory, setChatHistory] = useState([]);
             const [chatInput, setChatInput] = useState('');
             const [isBotTyping, setIsBotTyping] = useState(false);
@@ -210,22 +200,22 @@
                 setShowModal(true);
             };
 
-            const openEditModal = (client) => {
-                setEditingId(client.id);
-                setFormData(client);
-                setShowModal(true);
-            };
-
             const handleSubmit = (e) => {
                 e.preventDefault();
                 saveClient(formData, editingId);
                 setShowModal(false);
             };
 
+            // Secure AI Call using LocalStorage Key
             const handleAutoFill = async () => {
-                if(!formData.name) return;
+                const apiKey = getGeminiKey();
+                if (!apiKey) return openSettings();
+                if (!formData.name) return alert("Please type a Company Name first!");
+
                 setIsAutoFilling(true);
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
                 const prompt = `Find the official online presence for "${formData.name}" in Indonesia. Return ONLY a JSON object with these exact keys: website, ig, li, yt, tiktok. Leave empty string if not found.`;
+                
                 try {
                     const res = await fetch(API_URL, { 
                         method: 'POST', 
@@ -233,23 +223,30 @@
                         body: JSON.stringify({
                             contents: [{ parts: [{ text: prompt }] }],
                             tools: [{ "google_search": {} }],
-                            generationConfig: {
-                                responseMimeType: "application/json",
-                                responseSchema: { type: "OBJECT", properties: { website: { type: "STRING" }, ig: { type: "STRING" }, li: { type: "STRING" }, yt: { type: "STRING" }, tiktok: { type: "STRING" } } }
-                            }
+                            generationConfig: { responseMimeType: "application/json" }
                         }) 
                     });
                     const data = await res.json();
+                    if(data.error) throw new Error(data.error.message);
+                    
                     if(data.candidates?.[0]?.content?.parts?.[0]?.text) {
                         setFormData(prev => ({ ...prev, ...JSON.parse(data.candidates[0].content.parts[0].text) }));
                     }
-                } catch (err) { console.error(err); }
+                } catch (err) { 
+                    alert("AI Error: " + err.message); 
+                }
                 setIsAutoFilling(false);
             };
 
             const handleSendChat = async (e) => {
                 e.preventDefault();
                 if(!chatInput.trim()) return;
+                
+                const apiKey = getGeminiKey();
+                if (!apiKey) return openSettings();
+
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                
                 const userMsg = { role: 'user', text: chatInput };
                 setChatHistory(prev => [...prev, userMsg]);
                 setChatInput('');
@@ -269,175 +266,136 @@
                         }) 
                     });
                     const data = await res.json();
+                    if(data.error) throw new Error(data.error.message);
+                    
                     let text = data.candidates[0].content.parts[0].text;
                     setChatHistory(prev => [...prev, { role: 'model', text }]);
                 } catch (err) {
-                    setChatHistory(prev => [...prev, { role: 'model', text: "Error connecting to AI network. Check your Gemini API Key." }]);
+                    setChatHistory(prev => [...prev, { role: 'model', text: `**Error connecting to AI:** ${err.message}. Please check your Gemini API key in settings.` }]);
                 }
                 setIsBotTyping(false);
             };
 
             return (
-                <div className="h-full flex flex-col bg-white mobile-pb">
+                <div className="h-full flex flex-col bg-white">
                     <ConfirmModal 
-                        isOpen={deleteConfirm.isOpen} 
-                        title="Delete Client" 
-                        message="Are you sure you want to delete this client? This cannot be undone."
+                        isOpen={deleteConfirm.isOpen} title="Delete Client" message="Are you sure? This cannot be undone."
                         onConfirm={() => { deleteClient(deleteConfirm.id); setDeleteConfirm({isOpen: false, id: null}); }}
                         onCancel={() => setDeleteConfirm({isOpen: false, id: null})}
                     />
 
-                    <div className="px-4 md:px-8 py-4 md:py-6 border-b border-slate-200 flex flex-col md:flex-row md:justify-between md:items-center bg-slate-50 space-y-4 md:space-y-0">
+                    <div className="px-4 py-4 md:px-8 md:py-6 border-b border-slate-200 flex flex-col md:flex-row md:justify-between bg-slate-50 space-y-4 md:space-y-0 shrink-0">
                         <div>
                             <h2 className="text-xl md:text-2xl font-bold text-slate-800 flex items-center">
-                                <i data-lucide="target" className="w-5 h-5 md:w-6 md:h-6 mr-2 text-blue-600"></i> The Hunter
+                                <i data-lucide="target" className="w-5 h-5 mr-2 text-blue-600"></i> The Hunter
                             </h2>
-                            <p className="text-slate-500 text-xs md:text-sm mt-1">CRM Pipeline & Strategy</p>
+                            <p className="text-slate-500 text-xs md:text-sm mt-1">CRM Pipeline & AI Strategy</p>
                         </div>
                         <div className="flex space-x-1 bg-slate-200 p-1 rounded-lg self-start">
-                            <button onClick={() => setView('crm')} className={`px-3 md:px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${view === 'crm' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>CRM Tracker</button>
-                            <button onClick={() => setView('strategy')} className={`px-3 md:px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-colors flex items-center ${view === 'strategy' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>
+                            <button onClick={() => setView('crm')} className={`px-3 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${view === 'crm' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>CRM Tracker</button>
+                            <button onClick={() => setView('strategy')} className={`px-3 py-2 rounded-md text-xs md:text-sm font-medium transition-colors flex items-center ${view === 'strategy' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>
                                 <i data-lucide="sparkles" className="w-4 h-4 mr-1 text-purple-500"></i> AI Strategist
                             </button>
                         </div>
                     </div>
 
-                    {}
+                    {/* CRM View */}
                     {view === 'crm' && (
-                        <div className="p-4 md:p-8 flex-1 overflow-y-auto bg-slate-50 flex flex-col">
-                            <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 md:mb-6 space-y-3 md:space-y-0">
+                        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
+                            <div className="flex flex-col md:flex-row md:justify-between mb-4 space-y-3 md:space-y-0">
                                 <div className="relative w-full md:w-64">
                                     <i data-lucide="search" className="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
-                                    <input type="text" placeholder="Search clients..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                    <input type="text" placeholder="Search clients..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 rounded-lg border text-sm" />
                                 </div>
-                                <button onClick={openAddModal} className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 transition-colors text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center shadow-sm">
+                                <button onClick={openAddModal} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center shadow-sm">
                                     <i data-lucide="plus" className="w-4 h-4 mr-1"></i> Add Target
                                 </button>
                             </div>
                             
                             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
                                 <table className="w-full text-left min-w-[800px]">
-                                    <thead className="bg-slate-100/50 border-b border-slate-200 text-slate-500 text-xs md:text-sm uppercase tracking-wider">
+                                    <thead className="bg-slate-100 border-b text-slate-500 text-xs uppercase">
                                         <tr>
-                                            <th className="p-4 font-medium">Company</th>
-                                            <th className="p-4 font-medium">Status & Sector</th>
-                                            <th className="p-4 font-medium">Contact</th>
-                                            <th className="p-4 font-medium">Socials</th>
-                                            <th className="p-4 font-medium text-right">Actions</th>
+                                            <th className="p-4">Company</th>
+                                            <th className="p-4">Status & Sector</th>
+                                            <th className="p-4">Contact</th>
+                                            <th className="p-4">Socials</th>
+                                            <th className="p-4 text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 text-sm">
                                         {filteredClients.map(c => (
                                             <tr key={c.id} className="hover:bg-slate-50">
+                                                <td className="p-4 font-semibold text-slate-800">{c.name}</td>
                                                 <td className="p-4">
-                                                    <p className="font-semibold text-slate-800">{c.name}</p>
-                                                    {c.website && <a href={c.website.startsWith('http') ? c.website : `https://${c.website}`} target="_blank" className="text-xs text-blue-500 hover:underline truncate block max-w-[200px]">{c.website.replace('https://','')}</a>}
-                                                </td>
-                                                <td className="p-4">
-                                                    <span className="block text-xs font-semibold mb-1 text-slate-600">{c.sector}</span>
-                                                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wide border ${c.status === 'Potential' ? 'bg-slate-50 text-slate-500 border-slate-200' : c.status === 'Approaching' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>{c.status}</span>
+                                                    <span className="block text-xs font-semibold text-slate-600">{c.sector}</span>
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase ${c.status === 'Potential' ? 'bg-slate-100 text-slate-500' : c.status === 'Approaching' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'}`}>{c.status}</span>
                                                 </td>
                                                 <td className="p-4 text-slate-600">{c.contact || '-'}</td>
                                                 <td className="p-4">
                                                     <div className="flex space-x-3 text-slate-400">
-                                                        {c.li && <a href={c.li} target="_blank"><i data-lucide="linkedin" className="w-4 h-4 hover:text-blue-700 cursor-pointer"></i></a>}
-                                                        {c.ig && <a href={c.ig} target="_blank"><i data-lucide="instagram" className="w-4 h-4 hover:text-pink-600 cursor-pointer"></i></a>}
-                                                        {c.yt && <a href={c.yt} target="_blank"><i data-lucide="youtube" className="w-4 h-4 hover:text-red-600 cursor-pointer"></i></a>}
-                                                        {c.tiktok && <a href={c.tiktok} target="_blank"><TikTokIcon className="w-4 h-4 hover:text-black cursor-pointer" /></a>}
+                                                        {c.li && <a href={c.li} target="_blank"><i data-lucide="linkedin" className="w-4 h-4 hover:text-blue-700"></i></a>}
+                                                        {c.ig && <a href={c.ig} target="_blank"><i data-lucide="instagram" className="w-4 h-4 hover:text-pink-600"></i></a>}
                                                     </div>
                                                 </td>
                                                 <td className="p-4 text-right space-x-2">
-                                                    <button onClick={() => openEditModal(c)} className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md transition-colors"><i data-lucide="edit" className="w-4 h-4"></i></button>
-                                                    <button onClick={() => setDeleteConfirm({isOpen: true, id: c.id})} className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-md transition-colors"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
+                                                    <button onClick={() => { setEditingId(c.id); setFormData(c); setShowModal(true); }} className="p-1.5 bg-slate-100 text-slate-600 rounded"><i data-lucide="edit" className="w-4 h-4"></i></button>
+                                                    <button onClick={() => setDeleteConfirm({isOpen: true, id: c.id})} className="p-1.5 bg-red-50 text-red-600 rounded"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
                                                 </td>
                                             </tr>
                                         ))}
-                                        {filteredClients.length === 0 && (
-                                            <tr><td colSpan="5" className="p-8 text-center text-slate-500">No clients found. Add a new target to get started!</td></tr>
-                                        )}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     )}
 
-                    {}
+                    {/* Strategy View */}
                     {view === 'strategy' && (
-                        <div className="flex-1 flex flex-col bg-slate-50">
-                            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+                        <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden">
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
                                 {chatHistory.length === 0 && (
-                                    <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
-                                        <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-                                            <i data-lucide="sparkles" className="w-8 h-8 text-blue-600"></i>
-                                        </div>
-                                        <h3 className="text-xl font-bold text-slate-800 mb-2">Catalyst Intelligence</h3>
-                                        <p className="text-slate-500 text-sm">Ask me to research a potential client. I will analyze their market position, generate event strategies, and outline a pitch deck structure for you.</p>
+                                    <div className="flex flex-col items-center justify-center text-center mt-10">
+                                        <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4"><i data-lucide="sparkles" className="w-8 h-8 text-blue-600"></i></div>
+                                        <h3 className="text-xl font-bold text-slate-800">Catalyst Intelligence</h3>
+                                        <p className="text-slate-500 text-sm max-w-sm">Ask me to research a potential client. I will generate event strategies and outline a pitch deck structure for you.</p>
                                     </div>
                                 )}
                                 {chatHistory.map((msg, i) => (
                                     <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[90%] md:max-w-[80%] p-4 rounded-2xl text-sm ${msg.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai border border-slate-200'}`} dangerouslySetInnerHTML={{__html: msg.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>')}}></div>
+                                        <div className={`max-w-[90%] p-4 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white border'}`} dangerouslySetInnerHTML={{__html: msg.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>')}}></div>
                                     </div>
                                 ))}
-                                {isBotTyping && <div className="chat-bubble-ai p-4 rounded-2xl w-16 flex justify-center space-x-1"><div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div><div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay:'0.2s'}}></div></div>}
+                                {isBotTyping && <div className="p-4 bg-white border rounded-2xl w-16 flex space-x-1"><div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div><div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay:'0.2s'}}></div></div>}
                                 <div ref={chatEndRef}></div>
                             </div>
-                            <div className="p-3 md:p-4 bg-white border-t border-slate-200">
-                                <form onSubmit={handleSendChat} className="flex relative max-w-4xl mx-auto">
-                                    <input type="text" value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder="Ask AI Strategist (e.g., Generate a pitch idea for Gojek)..." className="w-full pl-4 pr-12 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm shadow-sm" />
-                                    <button type="submit" disabled={isBotTyping || !chatInput} className="absolute right-2 top-2 bottom-2 bg-blue-600 hover:bg-blue-700 transition-colors text-white rounded-lg px-3 flex items-center justify-center disabled:opacity-50"><i data-lucide="send" className="w-4 h-4"></i></button>
+                            <div className="p-3 bg-white border-t">
+                                <form onSubmit={handleSendChat} className="flex relative">
+                                    <input type="text" value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder="Ask AI Strategist..." className="w-full pl-4 pr-12 py-3 rounded-xl border text-sm" />
+                                    <button type="submit" disabled={isBotTyping} className="absolute right-2 top-2 bottom-2 bg-blue-600 text-white rounded-lg px-3"><i data-lucide="send" className="w-4 h-4"></i></button>
                                 </form>
                             </div>
                         </div>
                     )}
 
-                    {}
+                    {/* Add Client Modal */}
                     {showModal && (
-                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4">
-                            <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-                                <div className="px-4 md:px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
-                                    <h3 className="font-bold text-lg text-slate-800">{editingId ? 'Edit Client' : 'Add Client'}</h3>
-                                    <button onClick={() => setShowModal(false)} className="text-slate-400 hover:bg-slate-200 p-1 rounded-md"><i data-lucide="x" className="w-5 h-5"></i></button>
-                                </div>
-                                <form onSubmit={handleSubmit} className="p-4 md:p-6 overflow-y-auto space-y-4 md:space-y-6">
+                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+                                <div className="px-6 py-4 border-b flex justify-between items-center"><h3 className="font-bold text-lg">{editingId ? 'Edit Client' : 'Add Client'}</h3><button onClick={() => setShowModal(false)}><i data-lucide="x" className="w-5 h-5"></i></button></div>
+                                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-semibold text-slate-500 mb-1">Company Name *</label>
-                                            <input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                                        </div>
-                                        <div className="flex items-end">
-                                            <button type="button" onClick={handleAutoFill} disabled={isAutoFilling} className="w-full bg-indigo-50 hover:bg-indigo-100 transition-colors text-indigo-700 border border-indigo-200 font-medium py-2 px-3 rounded-lg flex justify-center items-center text-sm">
-                                                {isAutoFilling ? <div className="spinner w-4 h-4 mr-2 border-indigo-600"></div> : <i data-lucide="sparkles" className="w-4 h-4 mr-2"></i>}
-                                                {isAutoFilling ? 'Searching...' : 'Spark AI Auto-fill'}
-                                            </button>
-                                        </div>
+                                        <div><label className="block text-xs font-semibold mb-1">Company Name *</label><input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
+                                        <div className="flex items-end"><button type="button" onClick={handleAutoFill} disabled={isAutoFilling} className="w-full bg-indigo-50 text-indigo-700 py-2 rounded-lg text-sm flex justify-center items-center">{isAutoFilling ? <div className="spinner w-4 h-4 mr-2 border-indigo-600"></div> : <i data-lucide="sparkles" className="w-4 h-4 mr-2"></i>} Spark AI Auto-fill</button></div>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div className="sm:col-span-2"><label className="block text-xs font-semibold text-slate-500 mb-1">Contact Person</label><input type="text" value={formData.contact} onChange={e=>setFormData({...formData, contact: e.target.value})} placeholder="Name & Role" className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" /></div>
-                                        <div>
-                                            <label className="block text-xs font-semibold text-slate-500 mb-1">Sector</label>
-                                            <select value={formData.sector} onChange={e=>setFormData({...formData, sector: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm outline-none bg-white focus:ring-2 focus:ring-blue-500">
-                                                {SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-semibold text-slate-500 mb-1">Status</label>
-                                            <select value={formData.status} onChange={e=>setFormData({...formData, status: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm outline-none bg-white focus:ring-2 focus:ring-blue-500">
-                                                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div className="border-t pt-4"><h4 className="text-sm font-semibold mb-3">Links & Socials</h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <div className="flex items-center"><i data-lucide="globe" className="w-4 h-4 mr-2 text-slate-400"></i><input type="text" placeholder="Website" value={formData.website} onChange={e=>setFormData({...formData, website: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" /></div>
-                                            <div className="flex items-center"><i data-lucide="linkedin" className="w-4 h-4 mr-2 text-slate-400"></i><input type="text" placeholder="LinkedIn URL" value={formData.li} onChange={e=>setFormData({...formData, li: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" /></div>
-                                            <div className="flex items-center"><i data-lucide="instagram" className="w-4 h-4 mr-2 text-slate-400"></i><input type="text" placeholder="Instagram URL" value={formData.ig} onChange={e=>setFormData({...formData, ig: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" /></div>
-                                            <div className="flex items-center"><TikTokIcon className="w-4 h-4 mr-2 text-slate-400" /><input type="text" placeholder="TikTok URL" value={formData.tiktok} onChange={e=>setFormData({...formData, tiktok: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" /></div>
-                                        </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="col-span-2"><label className="block text-xs font-semibold mb-1">Contact Person</label><input type="text" value={formData.contact} onChange={e=>setFormData({...formData, contact: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
+                                        <div><label className="block text-xs font-semibold mb-1">Sector</label><select value={formData.sector} onChange={e=>setFormData({...formData, sector: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-white">{SECTORS.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
+                                        <div><label className="block text-xs font-semibold mb-1">Status</label><select value={formData.status} onChange={e=>setFormData({...formData, status: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-white">{STATUSES.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
                                     </div>
                                     <div className="flex justify-end pt-4 space-x-3">
-                                        <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors">Cancel</button>
-                                        <button type="submit" className="px-6 py-2 bg-blue-600 hover:bg-blue-700 transition-colors text-white rounded-lg font-medium text-sm shadow-md">Save Client</button>
+                                        <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-slate-100 rounded-lg text-sm">Cancel</button>
+                                        <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm">Save Client</button>
                                     </div>
                                 </form>
                             </div>
@@ -456,152 +414,71 @@
 
             const filteredPitches = pitches.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-            const openAddModal = () => {
-                setEditingId(null);
-                setFormData({ client_id: clients[0]?.id || '', name: '', deck_link: '', sub_date: '', pitch_date: '', event_date: '' });
-                setShowModal(true);
-            };
-
-            const openEditModal = (pitch) => {
-                setEditingId(pitch.id);
-                setFormData(pitch);
-                setShowModal(true);
-            };
-
             const handleSubmit = (e) => {
                 e.preventDefault();
+                if (!formData.client_id) return alert("Please select a client.");
                 savePitch(formData, editingId);
                 setShowModal(false);
             };
 
-            const generateGCalLink = (pitch) => {
-                const client = clients.find(c => c.id === pitch.client_id);
-                const title = encodeURIComponent(`Pitch: ${pitch.name} - ${client ? client.name : 'Client'}`);
-                
-                const formatForGCal = (dateString) => {
-                    if(!dateString) return "";
-                    const d = new Date(dateString);
-                    return d.toISOString().replace(/-|:|\.\d\d\d/g,"");
-                };
-
-                let datesStr = "";
-                if(pitch.pitch_date) {
-                    const start = formatForGCal(pitch.pitch_date);
-                    const end = formatForGCal(new Date(new Date(pitch.pitch_date).getTime() + 60*60*1000));
-                    datesStr = `&dates=${start}/${end}`;
-                }
-
-                const details = encodeURIComponent(`Client: ${client ? client.name : 'N/A'}\nDeck Link: ${pitch.deck_link || 'None provided'}\nSubmission Deadline: ${pitch.sub_date || 'N/A'}\nEvent Date: ${pitch.event_date || 'N/A'}`);
-                return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}${datesStr}&details=${details}`;
-            };
-
             return (
-                <div className="h-full flex flex-col bg-slate-50 mobile-pb">
+                <div className="h-full flex flex-col bg-slate-50">
                     <ConfirmModal 
-                        isOpen={deleteConfirm.isOpen} title="Delete Pitch" message="Are you sure you want to delete this pitch project?"
+                        isOpen={deleteConfirm.isOpen} title="Delete Pitch" message="Are you sure you want to delete this pitch?"
                         onConfirm={() => { deletePitch(deleteConfirm.id); setDeleteConfirm({isOpen: false, id: null}); }}
                         onCancel={() => setDeleteConfirm({isOpen: false, id: null})}
                     />
 
-                    <div className="px-4 md:px-8 py-4 md:py-6 flex flex-col md:flex-row justify-between items-start md:items-center bg-white border-b space-y-4 md:space-y-0 shadow-sm z-10">
+                    <div className="px-4 py-4 md:px-8 md:py-6 flex flex-col md:flex-row justify-between bg-white border-b space-y-4 shrink-0">
                         <div>
                             <h2 className="text-xl md:text-2xl font-bold text-slate-800 flex items-center">
-                                <i data-lucide="presentation" className="w-5 h-5 md:w-6 md:h-6 mr-2 text-purple-600"></i> The Pitcher
+                                <i data-lucide="presentation" className="w-5 h-5 mr-2 text-purple-600"></i> The Pitcher
                             </h2>
-                            <p className="text-slate-500 text-xs md:text-sm mt-1">Creative Decks, Briefings & Deadlines</p>
                         </div>
-                        <div className="flex w-full md:w-auto space-x-2">
-                            <div className="relative flex-1 md:w-64">
-                                <i data-lucide="search" className="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
-                                <input type="text" placeholder="Search projects..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm" />
-                            </div>
-                            <button onClick={openAddModal} className="bg-purple-600 hover:bg-purple-700 transition-colors text-white px-3 py-2 rounded-lg text-sm font-medium flex-shrink-0 flex items-center shadow-md">
-                                <i data-lucide="plus" className="w-4 h-4 md:mr-1"></i> <span className="hidden md:inline">New Pitch</span>
+                        <div className="flex space-x-2">
+                            <input type="text" placeholder="Search projects..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full md:w-64 px-4 py-2 rounded-lg border text-sm" />
+                            <button onClick={() => { setEditingId(null); setFormData({ client_id: clients[0]?.id || '', name: '', deck_link: '', sub_date: '', pitch_date: '', event_date: '' }); setShowModal(true); }} className="bg-purple-600 text-white px-3 py-2 rounded-lg text-sm font-medium flex items-center shrink-0">
+                                <i data-lucide="plus" className="w-4 h-4 mr-1"></i> New
                             </button>
                         </div>
                     </div>
 
-                    <div className="p-4 md:p-8 flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    <div className="p-4 md:p-8 flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredPitches.map(p => {
                             const client = clients.find(c => c.id === p.client_id);
                             return (
-                                <div key={p.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col relative group">
+                                <div key={p.id} className="bg-white rounded-2xl shadow-sm border p-5 flex flex-col relative group">
                                     <div className="absolute top-4 right-4 flex space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => openEditModal(p)} className="p-1.5 bg-slate-100 text-slate-600 rounded hover:text-purple-600 transition-colors"><i data-lucide="edit" className="w-4 h-4"></i></button>
-                                        <button onClick={() => setDeleteConfirm({isOpen: true, id: p.id})} className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
+                                        <button onClick={() => { setEditingId(p.id); setFormData(p); setShowModal(true); }} className="p-1.5 bg-slate-100 rounded"><i data-lucide="edit" className="w-4 h-4"></i></button>
+                                        <button onClick={() => setDeleteConfirm({isOpen: true, id: p.id})} className="p-1.5 bg-red-50 text-red-600 rounded"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
                                     </div>
-                                    <h3 className="font-bold text-lg pr-16 text-slate-800 leading-tight">{p.name}</h3>
+                                    <h3 className="font-bold text-lg pr-16 leading-tight">{p.name}</h3>
                                     <p className="text-sm text-purple-600 font-medium mb-4 mt-1">{client ? client.name : 'Unknown Client'}</p>
                                     
                                     <div className="space-y-3 mb-6 flex-1 text-sm text-slate-600">
-                                        <div className="flex items-center"><i data-lucide="alert-circle" className="w-4 h-4 mr-2 text-amber-500"></i><span className="w-20 font-medium">Submission:</span> {p.sub_date || '-'}</div>
-                                        <div className="flex items-center"><i data-lucide="calendar" className="w-4 h-4 mr-2 text-blue-500"></i><span className="w-20 font-medium">Pitch Date:</span> {p.pitch_date ? new Date(p.pitch_date).toLocaleString() : '-'}</div>
-                                        <div className="flex items-center"><i data-lucide="flag" className="w-4 h-4 mr-2 text-emerald-500"></i><span className="w-20 font-medium">Event/Live:</span> {p.event_date || '-'}</div>
+                                        <div className="flex items-center"><i data-lucide="calendar" className="w-4 h-4 mr-2 text-blue-500"></i>Pitch: {p.pitch_date ? new Date(p.pitch_date).toLocaleString() : '-'}</div>
                                     </div>
-                                    <div className="flex space-x-2 pt-4 border-t border-slate-100">
+                                    <div className="flex pt-4 border-t border-slate-100">
                                         {p.deck_link ? (
-                                            <a href={p.deck_link} target="_blank" className="flex-1 bg-slate-100 hover:bg-slate-200 transition-colors text-slate-700 text-center py-2 rounded-lg text-sm font-medium flex justify-center items-center"><i data-lucide="link" className="w-4 h-4 mr-1"></i> View Deck</a>
+                                            <a href={p.deck_link} target="_blank" className="flex-1 bg-slate-100 text-center py-2 rounded-lg text-sm font-medium"><i data-lucide="link" className="w-4 h-4 inline mr-1"></i> Deck</a>
                                         ) : (
-                                            <div className="flex-1 bg-slate-50 text-slate-400 text-center py-2 rounded-lg text-sm font-medium flex justify-center items-center"><i data-lucide="link-2-off" className="w-4 h-4 mr-1"></i> No Deck</div>
+                                            <div className="flex-1 bg-slate-50 text-slate-400 text-center py-2 rounded-lg text-sm">No Deck</div>
                                         )}
-                                        <a href={generateGCalLink(p)} target="_blank" className="flex-1 bg-white border border-slate-200 hover:border-blue-400 hover:text-blue-600 transition-colors text-center py-2 rounded-lg text-sm font-medium flex justify-center items-center shadow-sm"><i data-lucide="calendar-plus" className="w-4 h-4 mr-1"></i> GCal Add</a>
                                     </div>
                                 </div>
                             )
                         })}
-                        {filteredPitches.length === 0 && (
-                            <div className="col-span-full py-12 text-center bg-white rounded-2xl border border-dashed border-slate-300">
-                                <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <i data-lucide="presentation" className="w-8 h-8 text-purple-400"></i>
-                                </div>
-                                <h3 className="text-lg font-medium text-slate-700">No active pitch projects</h3>
-                                <p className="text-slate-500 mt-1">Start a new pitch linked to your CRM clients.</p>
-                            </div>
-                        )}
                     </div>
 
-                    {}
                     {showModal && (
-                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
-                                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                                    <h3 className="font-bold text-lg text-slate-800">{editingId ? 'Edit Pitch Project' : 'New Pitch Project'}</h3>
-                                    <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600"><i data-lucide="x" className="w-5 h-5"></i></button>
-                                </div>
+                        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden">
+                                <div className="px-6 py-4 border-b flex justify-between items-center"><h3 className="font-bold">{editingId ? 'Edit' : 'New'} Pitch</h3><button onClick={() => setShowModal(false)}><i data-lucide="x" className="w-5 h-5"></i></button></div>
                                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Related Client *</label>
-                                        <select required value={formData.client_id} onChange={e=>setFormData({...formData, client_id: e.target.value})} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none bg-white">
-                                            <option value="">Select a client...</option>
-                                            {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Project Name *</label>
-                                        <input required type="text" placeholder="e.g. Q4 Brand Activation" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Creative Deck Link (Docs/Canva)</label>
-                                        <input type="url" placeholder="https://..." value={formData.deck_link} onChange={e=>setFormData({...formData, deck_link: e.target.value})} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Submission Date</label>
-                                            <input type="date" value={formData.sub_date} onChange={e=>setFormData({...formData, sub_date: e.target.value})} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Pitch Meeting Date & Time</label>
-                                            <input type="datetime-local" value={formData.pitch_date} onChange={e=>setFormData({...formData, pitch_date: e.target.value})} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
-                                        </div>
-                                        <div className="col-span-2">
-                                            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Actual Event / Live Date</label>
-                                            <input type="date" value={formData.event_date} onChange={e=>setFormData({...formData, event_date: e.target.value})} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
-                                        </div>
-                                    </div>
-                                    <div className="flex justify-end space-x-3 pt-4">
-                                        <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors">Cancel</button>
-                                        <button type="submit" className="px-6 py-2 bg-purple-600 hover:bg-purple-700 transition-colors text-white rounded-lg font-medium shadow-md text-sm">{editingId ? 'Save Changes' : 'Create Pitch'}</button>
-                                    </div>
+                                    <div><label className="block text-xs font-semibold mb-1">Client *</label><select required value={formData.client_id} onChange={e=>setFormData({...formData, client_id: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm"><option value="">Select a client...</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+                                    <div><label className="block text-xs font-semibold mb-1">Project Name *</label><input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
+                                    <div><label className="block text-xs font-semibold mb-1">Deck Link</label><input type="url" value={formData.deck_link} onChange={e=>setFormData({...formData, deck_link: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
+                                    <div className="pt-4 flex justify-end space-x-3"><button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-slate-100 rounded-lg text-sm">Cancel</button><button type="submit" className="px-6 py-2 bg-purple-600 text-white rounded-lg text-sm">Save</button></div>
                                 </form>
                             </div>
                         </div>
@@ -614,111 +491,166 @@
             const [activeTab, setActiveTab] = useState('dashboard');
             const [clients, setClients] = useState([]);
             const [pitches, setPitches] = useState([]);
+            const [errorMsg, setErrorMsg] = useState(null);
+            const [successMsg, setSuccessMsg] = useState(null);
+            const [showSettings, setShowSettings] = useState(false);
+            const [localGeminiKey, setLocalGeminiKey] = useState(localStorage.getItem('gemini_api_key') || '');
+
+            const getGeminiKey = () => localStorage.getItem('gemini_api_key');
 
             const fetchClients = async () => {
                 if(!supabase) return;
                 const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
                 if(data) setClients(data);
-                if(error) console.error("Error fetching clients:", error);
+                if(error) setErrorMsg("Could not load clients. Check database setup.");
             };
 
             const fetchPitches = async () => {
                 if(!supabase) return;
                 const { data, error } = await supabase.from('pitches').select('*').order('created_at', { ascending: false });
                 if(data) setPitches(data);
-                if(error) console.error("Error fetching pitches:", error);
+                if(error) setErrorMsg("Could not load pitches.");
             };
 
             useEffect(() => {
                 if(!supabase) return;
                 fetchClients();
                 fetchPitches();
-
-                // Setup Real-time Listeners via Supabase Channels
-                const channel = supabase.channel('schema-db-changes')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' }, fetchClients)
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'pitches' }, fetchPitches)
-                    .subscribe();
-
-                return () => { supabase.removeChannel(channel); }
             }, []);
 
-            useEffect(() => { lucide.createIcons(); }, [activeTab, clients, pitches]);
+            useEffect(() => { lucide.createIcons(); }, [activeTab, clients, pitches, showSettings, errorMsg, successMsg]);
 
-            // Database Operations
+            // Robust Database Operations with Error Handling
             const saveClient = async (data, id) => {
-                if(!supabase) return;
+                if(!supabase) return setErrorMsg("Database not connected!");
                 const payload = { ...data };
                 delete payload.id; delete payload.created_at;
 
-                if (id) {
-                    await supabase.from('clients').update(payload).eq('id', id);
-                } else {
-                    await supabase.from('clients').insert([payload]);
+                try {
+                    let result;
+                    if (id) result = await supabase.from('clients').update(payload).eq('id', id);
+                    else result = await supabase.from('clients').insert([payload]);
+                    
+                    if (result.error) throw result.error;
+                    setSuccessMsg("Client saved successfully!");
+                    fetchClients();
+                } catch (err) {
+                    setErrorMsg("Failed to save: " + err.message);
                 }
             };
-            const deleteClient = async (id) => await supabase.from('clients').delete().eq('id', id);
+            const deleteClient = async (id) => {
+                if(!supabase) return;
+                try {
+                    const { error } = await supabase.from('clients').delete().eq('id', id);
+                    if(error) throw error;
+                    setSuccessMsg("Client deleted.");
+                    fetchClients();
+                } catch (err) { setErrorMsg("Failed to delete: " + err.message); }
+            };
             
             const savePitch = async (data, id) => {
-                if(!supabase) return;
+                if(!supabase) return setErrorMsg("Database not connected!");
                 const payload = { ...data };
                 delete payload.id; delete payload.created_at;
-
                 if(!payload.sub_date) payload.sub_date = null;
                 if(!payload.pitch_date) payload.pitch_date = null;
                 if(!payload.event_date) payload.event_date = null;
 
-                if (id) {
-                    await supabase.from('pitches').update(payload).eq('id', id);
-                } else {
-                    await supabase.from('pitches').insert([payload]);
-                }
+                try {
+                    let result;
+                    if (id) result = await supabase.from('pitches').update(payload).eq('id', id);
+                    else result = await supabase.from('pitches').insert([payload]);
+                    
+                    if (result.error) throw result.error;
+                    setSuccessMsg("Pitch saved!");
+                    fetchPitches();
+                } catch (err) { setErrorMsg("Failed to save pitch: " + err.message); }
             };
-            const deletePitch = async (id) => await supabase.from('pitches').delete().eq('id', id);
+            const deletePitch = async (id) => {
+                if(!supabase) return;
+                try {
+                    const { error } = await supabase.from('pitches').delete().eq('id', id);
+                    if(error) throw error;
+                    setSuccessMsg("Pitch deleted.");
+                    fetchPitches();
+                } catch (err) { setErrorMsg("Failed to delete: " + err.message); }
+            };
 
             return (
-                <div className="flex h-screen overflow-hidden bg-slate-100 font-sans">
+                <div className="flex flex-col md:flex-row h-full overflow-hidden bg-slate-100 font-sans">
+                    
+                    <AlertToast message={errorMsg} type="error" onClose={() => setErrorMsg(null)} />
+                    <AlertToast message={successMsg} type="success" onClose={() => setSuccessMsg(null)} />
+
                     {/* Desktop Sidebar */}
-                    <div className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col h-full z-20 shadow-xl border-r border-slate-800">
-                        <div className="p-6 flex items-center border-b border-slate-800 mb-4">
+                    <div className="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col h-full shrink-0">
+                        <div className="p-6 flex items-center mb-4 border-b border-slate-800">
                             <CatalystLogo />
                             <h1 className="ml-3 text-xl font-bold text-white tracking-tight">Catalyst<span className="text-blue-500">BD</span></h1>
                         </div>
                         <nav className="flex-1 px-4 space-y-2">
                             {NAV_ITEMS.map(i => (
-                                <button key={i.id} onClick={() => setActiveTab(i.id)} className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 ${activeTab === i.id ? 'bg-blue-600 text-white shadow-md shadow-blue-900/50' : 'hover:bg-slate-800 hover:text-white'}`}>
+                                <button key={i.id} onClick={() => setActiveTab(i.id)} className={`w-full flex items-center p-3 rounded-lg transition-colors ${activeTab === i.id ? 'bg-blue-600 text-white' : 'hover:bg-slate-800'}`}>
                                     <i data-lucide={i.icon} className="w-5 h-5 mr-3"></i><span className="font-medium">{i.label}</span>
                                 </button>
                             ))}
                         </nav>
-                        <div className="p-4 border-t border-slate-800 text-xs text-slate-500 text-center">CatalystBD v3.0 &bull; Supabase</div>
+                        <button onClick={() => setShowSettings(true)} className="m-4 p-3 border border-slate-700 rounded-lg text-sm flex items-center justify-center hover:bg-slate-800"><i data-lucide="settings" className="w-4 h-4 mr-2"></i> Settings</button>
                     </div>
 
-                    {/* Main Content Area */}
-                    <main className="flex-1 relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.02)]">
-                        {activeTab === 'dashboard' && <Dashboard clients={clients} pitches={pitches} />}
-                        {activeTab === 'hunter' && <Hunter clients={clients} saveClient={saveClient} deleteClient={deleteClient} />}
-                        {activeTab === 'pitcher' && <Pitcher pitches={pitches} clients={clients} savePitch={savePitch} deletePitch={deletePitch} />}
-                        {(activeTab === 'manager' || activeTab === 'farmer') && (
-                            <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50 mobile-pb">
-                                <div className={`w-24 h-24 rounded-3xl ${activeTab==='manager'?'bg-amber-100 text-amber-500':'bg-emerald-100 text-emerald-500'} flex items-center justify-center mb-6`}>
-                                    <i data-lucide={activeTab==='manager'?'kanban':'sprout'} className="w-12 h-12"></i>
+                    {/* Main Content - Fix Mobile Scroll */}
+                    <main className="flex-1 relative overflow-hidden flex flex-col pb-16 md:pb-0">
+                        <div className="flex-1 overflow-y-auto w-full h-full">
+                            {activeTab === 'dashboard' && <Dashboard clients={clients} pitches={pitches} openSettings={() => setShowSettings(true)} />}
+                            {activeTab === 'hunter' && <Hunter clients={clients} saveClient={saveClient} deleteClient={deleteClient} getGeminiKey={getGeminiKey} openSettings={() => setShowSettings(true)} />}
+                            {activeTab === 'pitcher' && <Pitcher pitches={pitches} clients={clients} savePitch={savePitch} deletePitch={deletePitch} />}
+                            {(activeTab === 'manager' || activeTab === 'farmer') && (
+                                <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50">
+                                    <div className="w-24 h-24 rounded-3xl bg-amber-100 text-amber-500 flex items-center justify-center mb-6"><i data-lucide="tool" className="w-12 h-12"></i></div>
+                                    <h2 className="text-2xl font-bold mb-2">Module In Development</h2>
+                                    <p className="text-slate-500">This feature is coming in Phase 2.</p>
                                 </div>
-                                <h2 className="text-2xl font-bold text-slate-800 mb-2">{activeTab === 'manager' ? 'Project Manager Workspace' : 'Client Retention Tracker'}</h2>
-                                <p className="text-slate-500 max-w-md">This advanced module is currently in development and will be activated in the next phase.</p>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </main>
 
                     {/* Mobile Bottom Nav */}
-                    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 flex justify-around pb-safe shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+                    <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t z-50 flex justify-around items-center">
                         {NAV_ITEMS.slice(0,4).map(i => (
-                            <button key={i.id} onClick={() => setActiveTab(i.id)} className={`flex flex-col items-center justify-center w-full py-3 transition-colors ${activeTab === i.id ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>
-                                <i data-lucide={i.icon} className="w-6 h-6 mb-1"></i>
-                                <span className="text-[10px] font-medium">{i.label.replace(/[0-9].\s/g, '')}</span>
+                            <button key={i.id} onClick={() => setActiveTab(i.id)} className={`flex flex-col items-center justify-center w-full h-full ${activeTab === i.id ? 'text-blue-600' : 'text-slate-400'}`}>
+                                <i data-lucide={i.icon} className="w-5 h-5 mb-1"></i>
+                                <span className="text-[10px] font-medium">{i.label.split(' ')[1] || i.label}</span>
                             </button>
                         ))}
                     </div>
+
+                    {/* Secure Settings Modal (Fix API Leak) */}
+                    {showSettings && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[300] p-4">
+                            <div className="bg-white rounded-2xl w-full max-w-md p-6">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-lg text-slate-800">App Settings</h3>
+                                    <button onClick={() => setShowSettings(false)} className="text-slate-500 hover:text-slate-800"><i data-lucide="x" className="w-5 h-5"></i></button>
+                                </div>
+                                <div className="bg-blue-50 border border-blue-200 text-blue-800 text-xs p-3 rounded-lg mb-4">
+                                    <strong>Secure Setup:</strong> Enter your Gemini API key here. It will be saved securely on this specific device and never uploaded to GitHub.
+                                </div>
+                                <label className="block text-sm font-semibold mb-2">Gemini AI API Key</label>
+                                <input 
+                                    type="password" 
+                                    value={localGeminiKey} 
+                                    onChange={(e) => setLocalGeminiKey(e.target.value)}
+                                    className="w-full border rounded-lg px-3 py-2 text-sm mb-4" 
+                                    placeholder="AIzaSy..."
+                                />
+                                <button onClick={() => {
+                                    localStorage.setItem('gemini_api_key', localGeminiKey);
+                                    setSuccessMsg("Key saved securely to this device.");
+                                    setShowSettings(false);
+                                }} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium text-sm">Save Settings</button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
